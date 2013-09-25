@@ -2,6 +2,7 @@ import hashlib
 import os
 
 from .database import MetadataStore
+from .errors import InvalidStore
 
 
 CHUNKSIZE = 4096
@@ -68,7 +69,12 @@ class FileStore(object):
     """
     def __init__(self, path):
         self.store = os.path.join(path, 'objects')
-        self.metadata = MetadataStore()
+        if not os.path.isdir(self.store):
+            raise InvalidStore("objects is not a directory")
+        db = os.path.join(path, 'database')
+        if not os.path.isfile(db):
+            raise InvalidStore("database is not a file")
+        self.metadata = MetadataStore(db)
 
     def open_file(self, filehash):
         """Returns a file object for a given SHA1 hash.
@@ -96,6 +102,7 @@ class FileStore(object):
         newfile.seek(0, os.SEEK_SET)
         filehash = hash_file(newfile)
         copy_file(newfile, self.get_filename(filehash))
+        self.metadata.add(filehash, metadata)
 
     def remove_file(self, filehash):
         """Removes a file given its SHA1 hash.
