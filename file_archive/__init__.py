@@ -89,6 +89,10 @@ class FileStore(object):
                     e.__class__.__name__))
         MetadataStore.create_db(os.path.join(path, 'database'))
 
+    def close(self):
+        self.metadata.close()
+        self.metadata = None
+
     def open_file(self, filehash):
         """Returns a file object for a given SHA1 hash.
         """

@@ -33,6 +33,10 @@ class MetadataStore(object):
             raise CreationError("Could not create database: %s: %s" % (
                     e.__class__.__name__, e.message))
 
+    def close(self):
+        self.conn.commit()
+        self.conn.close()
+
     def add(self, key, metadata):
         """Adds a hash and its metadata to the store.
 
