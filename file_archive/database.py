@@ -32,8 +32,8 @@ class MetadataStore(object):
             conn.execute(u'''
                     CREATE TABLE metadata(
                         hash VARCHAR(40),
-                        key VARCHAR(255),
-                        value VARCHAR(255))
+                        mkey VARCHAR(255),
+                        mvalue VARCHAR(255))
                     ''')
             conn.commit()
             conn.close()
@@ -53,12 +53,12 @@ class MetadataStore(object):
         cur = self.conn.cursor()
         try:
             cur.execute(u'''
-                    INSERT INTO hash(hash, creation_time)
+                    INSERT INTO hashes(hash, creation_time)
                     VALUES(:hash, datetime())
                     ''',
                     {'hash': key})
             cur.executemany(u'''
-                    INSERT INTO metadata(hash, key, value)
+                    INSERT INTO metadata(hash, mkey, mvalue)
                     VALUES(:hash, :key, :value)
                     ''',
                     itertools.chain((('hash', key),), metadata.iteritems()))
