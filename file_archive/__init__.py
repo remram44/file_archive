@@ -2,7 +2,7 @@ import hashlib
 import os
 
 from .database import MetadataStore
-from .errors import InvalidStore
+from .errors import CreationError, InvalidStore
 
 
 CHUNKSIZE = 4096
@@ -75,6 +75,19 @@ class FileStore(object):
         if not os.path.isfile(db):
             raise InvalidStore("database is not a file")
         self.metadata = MetadataStore(db)
+
+    @staticmethod
+    def create_store(path):
+        if os.path.exists(path):
+            if not os.path.isdir(path) or os.listdir(path):
+                raise CreationError("Path is not a directory or is not empty")
+        try:
+            os.mkdir(path)
+            os.mkdir(os.path.join(path, 'objects'))
+        except OSError, e:
+            raise CreationError("Could not create directories: %s: %s" % (
+                    e.__class__.__name__))
+        MetadataStore.create_db(os.path.join(path, 'database'))
 
     def open_file(self, filehash):
         """Returns a file object for a given SHA1 hash.

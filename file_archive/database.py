@@ -1,6 +1,6 @@
 import sqlite3
 
-from .errors import InvalidStore
+from .errors import CreationError, InvalidStore
 
 
 class MetadataStore(object):
@@ -16,6 +16,21 @@ class MetadataStore(object):
                 raise InvalidStore("Database doesn't have required structure")
         except sqlite3.Error, e:
             raise InvalidStore("Cannot access database: %s: %s" % (
+                    e.__class__.__name__, e.message))
+
+    @staticmethod
+    def create_db(database):
+        try:
+            conn = sqlite3.connect(database)
+            conn.execute(
+                u''' CREATE TABLE metadata(
+                        hash VARCHAR(40),
+                        key VARCHAR(255),
+                        value VARCHAR(255)) ''')
+            conn.commit()
+            conn.close()
+        except sqlite3.Error, e:
+            raise CreationError("Could not create database: %s: %s" % (
                     e.__class__.__name__, e.message))
 
     def add(self, key, metadata):
