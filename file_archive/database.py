@@ -13,7 +13,7 @@ class MetadataStore(object):
             tables = cur.execute(u'''
                     SELECT name FROM sqlite_master WHERE type = 'table'
                     ''')
-            if tables.fetchall() != [(u'metadata',)]:
+            if set(tables.fetchall()) != set[(u'metadata',), (u'hashes',)]:
                 raise InvalidStore("Database doesn't have required structure")
         except sqlite3.Error, e:
             raise InvalidStore("Cannot access database: %s: %s" % (
@@ -23,6 +23,11 @@ class MetadataStore(object):
     def create_db(database):
         try:
             conn = sqlite3.connect(database)
+            conn.execute(u'''
+                    CREATE TABLE hashes(
+                        hash VARCHAR(40),
+                        creation_time DATETIME)
+                    ''')
             conn.execute(u'''
                     CREATE TABLE metadata(
                         hash VARCHAR(40),
