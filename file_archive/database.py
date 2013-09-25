@@ -10,8 +10,9 @@ class MetadataStore(object):
         try:
             self.conn = sqlite3.connect(database)
             cur = self.conn.cursor()
-            tables = cur.execute(
-                u''' SELECT name FROM sqlite_master WHERE type = 'table' ''')
+            tables = cur.execute(u'''
+                    SELECT name FROM sqlite_master WHERE type = 'table'
+                    ''')
             if tables.fetchall() != [(u'metadata',)]:
                 raise InvalidStore("Database doesn't have required structure")
         except sqlite3.Error, e:
@@ -22,11 +23,12 @@ class MetadataStore(object):
     def create_db(database):
         try:
             conn = sqlite3.connect(database)
-            conn.execute(
-                u''' CREATE TABLE metadata(
+            conn.execute(u'''
+                    CREATE TABLE metadata(
                         hash VARCHAR(40),
                         key VARCHAR(255),
-                        value VARCHAR(255)) ''')
+                        value VARCHAR(255))
+                    ''')
             conn.commit()
             conn.close()
         except sqlite3.Error, e:
