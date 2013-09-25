@@ -105,4 +105,78 @@ class MetadataStore(object):
 
         Each row is a dict, with at least the 'hash' key.
         """
-        # TODO
+        cur = self.conn.cursor()
+        if not conditions:
+            rows = cur.execute(u'''
+                    SELECT hash, creation_time
+                    FROM hashes
+                    LEFT OUTER JOIN metadata ON hashes.hash=metadata.hash
+                    ORDER BY hashes.hash
+                    ''')
+        else:
+            conditems = conditions.iteritems()
+            meta_key, meta_value = next(conditems)
+            query = u'''
+                    SELECT hash, mkey, mvalue
+                    FROM metadata i0
+                    '''
+            params = {'key0': meta_key, 'val0': meta_value}
+            for j, (meta_key, meta_value) in enumerate(conditems):
+                query += u'''
+                        INNER JOIN metadata i{i} ON i0.hash = i{i}.hash
+                            AND i{i}.mkey = :key{i} AND i{i}.mvalue = :val{i}
+                        '''.format(i=j+1)
+                params['key%d' % (j+1)] = meta_key
+                params['val%d' % (j+1)] = meta_value
+            query += u'''
+                    WHERE i0.mkey = :key0 AND i0.mvalue = :val0
+                    '''
+            rows = cur.execute(u'''
+                    SELECT hash, mkey, mvalue FROM metadata
+                    WHERE hash IN ({hashes})
+                    ORDER BY hash
+                    '''.format(hashes=query),
+                    params)
+            # TODO : creation_time is missing here
+
+        return ResultBuilder(rows)
+
+
+class ResultBuilder(object):
+    """This regroups rows for key-values of a single hash into one dict.
+
+    Example:
+    +------+-----+-------+
+    | hash | key | value |        [
+    +------+-----+-------+         {'hash': 'aaaa', 'one': 11, 'two': 12},
+    | aaaa | one |  11   |   =>    {'hash': 'bbbb', 'one': 21, 'six': 26},
+    | aaaa | two |  12   |        ]
+    | bbbb | one |  21   |
+    | bbbb | six |  26   |
+    +------+-----+-------+
+    """
+    def __init__(self, rows):
+        self.rows = iter(rows)
+        self.record = None
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        if self.rows is None:
+            raise StopIteration
+        if self.record is None:
+            r = self.rows.next() # Might raise StopIteration
+        else:
+            r = self.record
+        h = r['hash']
+        dct = {'hash': h, r['mkey']: r['mvalue']}
+
+        for r in self.rows:
+            if r['hash'] != h:
+                self.record = r
+                return dct
+            dct[r['mkey']] = r['mvalue']
+        else:
+            self.rows = None
+        return dct
