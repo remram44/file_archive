@@ -1,3 +1,4 @@
+import itertools
 import sqlite3
 
 from .errors import CreationError, InvalidStore
@@ -49,19 +50,53 @@ class MetadataStore(object):
 
         Raises KeyError if an entry already existed.
         """
-        # TODO
+        cur = self.conn.cursor()
+        try:
+            cur.execute(u'''
+                    INSERT INTO hash(hash, creation_time)
+                    VALUES(:hash, datetime())
+                    ''',
+                    {'hash': key})
+            cur.executemany(u'''
+                    INSERT INTO metadata(hash, key, value)
+                    VALUES(:hash, :key, :value)
+                    ''',
+                    itertools.chain((('hash', key),), metadata.iteritems()))
+            self.conn.commit()
+        except:
+            self.conn.rollback()
+            raise
 
     def remove(self, key):
         """Removes a hash and its metadata from the store.
 
         Raises KeyError if the entry didn't exist.
         """
-        # TODO
+        cur = self.conn.cursor()
+        try:
+            cur.execute(u'''
+                    DELETE FROM hashes WHERE hash = :hash
+                    ''',
+                    {'hash': key})
+            if cur.rowcount != 1:
+                raise KeyError(key)
+            cur.execute(u'''
+                    DELETE FROM metadata WHERE hash = :hash
+                    ''',
+                    {'hash': key})
+            self.conn.commit()
+        except:
+            self.conn.rollback()
+            raise
 
     def query_one(self, conditions):
         """Returns at most one row matching the conditions, as a dict.
 
-        The dict will have the 'hash' key plus all the stored metadata.
+        The returned dict will have the 'hash' key plus all the stored
+        metadata.
+
+        conditions is a dictionary of metadata that need to be included in the
+        actual dict of each hash.
         """
         # TODO
 
