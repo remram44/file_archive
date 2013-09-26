@@ -9,11 +9,13 @@ class MetadataStore(object):
     def __init__(self, database):
         try:
             self.conn = sqlite3.connect(database)
+            self.conn.row_factory = sqlite3.Row
             cur = self.conn.cursor()
             tables = cur.execute(u'''
                     SELECT name FROM sqlite_master WHERE type = 'table'
                     ''')
-            if set(tables.fetchall()) != set([(u'metadata',), (u'hashes',)]):
+            if set(r['name'] for r in tables.fetchall()) != set([
+                    u'metadata', u'hashes']):
                 raise InvalidStore("Database doesn't have required structure")
         except sqlite3.Error, e:
             raise InvalidStore("Cannot access database: %s: %s" % (
@@ -173,14 +175,14 @@ class ResultBuilder(object):
     """This regroups rows for key-values of a single hash into one dict.
 
     Example:
-    +------+-----+-------+
-    | hash | key | value |        [
-    +------+-----+-------+         {'hash': 'aaaa', 'one': 11, 'two': 12},
-    | aaaa | one |  11   |   =>    {'hash': 'bbbb', 'one': 21, 'six': 26},
-    | aaaa | two |  12   |        ]
-    | bbbb | one |  21   |
-    | bbbb | six |  26   |
-    +------+-----+-------+
+    +------+------+--------+
+    | hash | mkey | mvalue |        [
+    +------+------+--------+         {'hash': 'aaaa', 'one': 11, 'two': 12},
+    | aaaa | one  |   11   |   =>    {'hash': 'bbbb', 'one': 21, 'six': 26},
+    | aaaa | two  |   12   |        ]
+    | bbbb | one  |   21   |
+    | bbbb | six  |   26   |
+    +------+------+--------+
     """
     def __init__(self, rows):
         self.rows = iter(rows)
@@ -193,23 +195,23 @@ class ResultBuilder(object):
         if self.rows is None:
             raise StopIteration
         if self.record is None:
-            r = self.rows.next() # Might raise StopIteration
+            r = next(self.rows) # Might raise StopIteration
         else:
             r = self.record
-        h = r[0]
+        h = r['hash']
         # We might be outer-joining hashes with metadata, in which case a hash
         # that is stored with no metadata will be returned as a single row
         # hash=hash mkey=NULL mvalue=NULL
-        if len(r) == 3 and r[1]:
-            dct = {'hash': h, r[1]: r[2]}
+        if len(r) == 3 and r['mkey']:
+            dct = {'hash': h, r['mkey']: r['mvalue']}
         else:
             dct = {'hash': h}
 
         for r in self.rows:
-            if r[0] != h:
+            if r['hash'] != h:
                 self.record = r
                 return dct
-            dct[r[1]] = r[2]
+            dct[r['mkey']] = r['mvalue']
         else:
             self.rows = None
         return dct
