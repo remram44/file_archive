@@ -101,12 +101,15 @@ class FileStore(object):
         except IOError:
             raise KeyError("No file with hash %s" % filehash)
 
-    def get_filename(self, filehash):
+    def get_filename(self, filehash, make_dir=False):
         """Returns the file path for a given SHA1 hash.
         """
         if not isinstance(filehash, basestring):
             raise TypeError("hash should be a string, not %s" % type(filehash))
-        return os.path.join(self.store, filehash[:2], filehash[2:])
+        dirname = os.path.join(self.store, filehash[:2])
+        if not os.path.isdir(dirname):
+            os.mkdir(dirname)
+        return os.path.join(dirname, filehash[2:])
 
     def add_file(self, newfile, metadata):
         """Adds a file given a file object or path and dict of metadata.
@@ -119,7 +122,7 @@ class FileStore(object):
         newfile.seek(0, os.SEEK_SET)
         filehash = hash_file(newfile)
         newfile.seek(0, os.SEEK_SET)
-        copy_file(newfile, self.get_filename(filehash))
+        copy_file(newfile, self.get_filename(filehash, make_dir=True))
         self.metadata.add(filehash, metadata)
 
     def remove_file(self, filehash):
