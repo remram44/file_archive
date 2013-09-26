@@ -104,7 +104,7 @@ class FileStore(object):
     def get_filename(self, filehash):
         """Returns the file path for a given SHA1 hash.
         """
-        if not isinstance(hash, basestring):
+        if not isinstance(filehash, basestring):
             raise TypeError("hash should be a string, not %s" % type(filehash))
         return os.path.join(self.store, filehash[:2], filehash[2:])
 
@@ -118,6 +118,7 @@ class FileStore(object):
             newfile = open(newfile, 'rb')
         newfile.seek(0, os.SEEK_SET)
         filehash = hash_file(newfile)
+        newfile.seek(0, os.SEEK_SET)
         copy_file(newfile, self.get_filename(filehash))
         self.metadata.add(filehash, metadata)
 

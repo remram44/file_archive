@@ -1,4 +1,3 @@
-import itertools
 import sqlite3
 
 from .errors import CreationError, InvalidStore
@@ -14,7 +13,7 @@ class MetadataStore(object):
             tables = cur.execute(u'''
                     SELECT name FROM sqlite_master WHERE type = 'table'
                     ''')
-            if set(tables.fetchall()) != set[(u'metadata',), (u'hashes',)]:
+            if set(tables.fetchall()) != set([(u'metadata',), (u'hashes',)]):
                 raise InvalidStore("Database doesn't have required structure")
         except sqlite3.Error, e:
             raise InvalidStore("Cannot access database: %s: %s" % (
@@ -61,7 +60,8 @@ class MetadataStore(object):
                     INSERT INTO metadata(hash, mkey, mvalue)
                     VALUES(:hash, :key, :value)
                     ''',
-                    itertools.chain((('hash', key),), metadata.iteritems()))
+                    ({'hash': key, 'key': k, 'value': v}
+                     for k, v in metadata.iteritems()))
             self.conn.commit()
         except:
             self.conn.rollback()
@@ -117,7 +117,7 @@ class MetadataStore(object):
             conditems = conditions.iteritems()
             meta_key, meta_value = next(conditems)
             query = u'''
-                    SELECT hash, mkey, mvalue
+                    SELECT hash
                     FROM metadata i0
                     '''
             params = {'key0': meta_key, 'val0': meta_value}
@@ -169,14 +169,14 @@ class ResultBuilder(object):
             r = self.rows.next() # Might raise StopIteration
         else:
             r = self.record
-        h = r['hash']
-        dct = {'hash': h, r['mkey']: r['mvalue']}
+        h = r[0]
+        dct = {'hash': h, r[1]: r[2]}
 
         for r in self.rows:
-            if r['hash'] != h:
+            if r[0] != h:
                 self.record = r
                 return dct
-            dct[r['mkey']] = r['mvalue']
+            dct[r[1]] = r[2]
         else:
             self.rows = None
         return dct
