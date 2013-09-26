@@ -28,10 +28,23 @@ class MetadataStore(object):
                         hash VARCHAR(40))
                     ''')
             conn.execute(u'''
+                    CREATE INDEX hashes_idx ON hashes(hash)
+                    ''')
+
+            conn.execute(u'''
                     CREATE TABLE metadata(
                         hash VARCHAR(40),
                         mkey VARCHAR(255),
                         mvalue VARCHAR(255))
+                    ''')
+            conn.execute(u'''
+                    CREATE INDEX hash_idx ON metadata(hash)
+                    ''')
+            conn.execute(u'''
+                    CREATE INDEX mkey_idx ON metadata(mkey)
+                    ''')
+            conn.execute(u'''
+                    CREATE INDEX mvalue_idx ON metadata(mvalue)
                     ''')
             conn.commit()
             conn.close()
