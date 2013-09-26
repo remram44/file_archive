@@ -124,6 +124,7 @@ class FileStore(object):
         newfile.seek(0, os.SEEK_SET)
         copy_file(newfile, self.get_filename(filehash, make_dir=True))
         self.metadata.add(filehash, metadata)
+        return filehash
 
     def remove_file(self, filehash):
         """Removes a file given its SHA1 hash.
