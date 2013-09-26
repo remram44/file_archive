@@ -145,6 +145,10 @@ class FileStore(object):
 
         The file will be copied/written in the store, and an entry will be
         added to the database.
+
+        Note that, if you pass a file object, it needs to support
+        newfile.seek(0, os.SEEK_SET) as it will be read twice: once to compute
+        its SHA1 hash, and a second time to write it to disk.
         """
         if isinstance(newfile, basestring):
             newfile = open(newfile, 'rb')
