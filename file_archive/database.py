@@ -138,21 +138,23 @@ class MetadataStore(object):
             conditems = conditions.iteritems()
             meta_key, meta_value = next(conditems)
             query = u'''
-                    SELECT hash
+                    SELECT i0.hash
                     FROM metadata i0
                     '''
-            params = {'key0': meta_key, 'val0': meta_value}
+            cond0, params = self._make_condition(0, meta_key, meta_value)
+            params['key0'] = meta_key
             for j, (meta_key, meta_value) in enumerate(conditems):
+                cond, prms = self._make_condition(j+1, meta_key, meta_value)
                 query += u'''
                         INNER JOIN metadata i{i} ON i0.hash = i{i}.hash
-                            AND i{i}.mkey = :key{i} AND i{i}.mvalue = :val{i}
-                        '''.format(i=j+1)
+                            AND i{i}.mkey = :key{i} AND {cond}
+                        '''.format(i=j+1, cond=cond)
                 params['key%d' % (j+1)] = meta_key
-                params['val%d' % (j+1)] = meta_value
+                params.update(prms)
             query += u'''
-                    WHERE i0.mkey = :key0 AND i0.mvalue = :val0
+                    WHERE i0.mkey = :key0 AND {cond}
                     {limit}
-                    '''.format(limit=limit)
+                    '''.format(cond=cond0, limit=limit)
             rows = cur.execute(u'''
                     SELECT hash, mkey, mvalue FROM metadata
                     WHERE hash IN ({hashes})
@@ -161,6 +163,10 @@ class MetadataStore(object):
                     params)
 
         return ResultBuilder(rows)
+
+    def _make_condition(self, i, key, value):
+        return ('i{i}.mvalue = :val{i}'.format(i=i),
+                {'val%d' % i: value})
 
 
 class ResultBuilder(object):
