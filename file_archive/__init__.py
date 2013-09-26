@@ -178,15 +178,19 @@ class FileStore(object):
             raise
         return dirhash
 
-    def remove_file(self, filehash):
-        """Removes a file given its SHA1 hash.
+    def remove(self, objecthash):
+        """Removes a file or directory given its SHA1 hash.
 
         It is deleted from the store and removed from the database.
         """
-        if isinstance(filehash, Entry):
-            filehash = filehash['hash']
-        os.remove(self.get_filename(filehash))
-        self.metadata.remove(filehash)
+        if isinstance(objecthash, Entry):
+            objecthash = objecthash['hash']
+        objectpath = self.get_filename(objecthash)
+        if os.path.isdir(objectpath):
+            shutil.rmtree(objectpath)
+        else:
+            os.remove(objectpath)
+        self.metadata.remove(objecthash)
 
     def query_one(self, conditions):
         """Returns at most one Entry matching the conditions.
