@@ -1,5 +1,6 @@
 import hashlib
 import os
+import shutil
 
 from .database import MetadataStore
 from .errors import CreationError, InvalidStore
@@ -31,6 +32,30 @@ def copy_file(fileobj, destination):
         except:
             os.remove(destination)
             raise
+
+
+def hash_directory(path):
+    """Hashes a directory to a 40 hex character string.
+    """
+    h = hashlib.sha1()
+    for f in os.listdir(path):
+        pf = os.path.join(path, f)
+        if os.path.isdir(pf):
+            h.update('dir %s %s\n' % (f, hash_directory(pf)))
+        else:
+            with open(pf, 'rb') as fd:
+                h.update('file %s %s\n' % (f, hash_file(fd)))
+    return h.hexdigest()
+
+
+def copy_directory(sourcepath, destination):
+    """Copies a directory recursively to a destination name.
+    """
+    try:
+        shutil.copytree(sourcepath, destination)
+    except:
+        shutil.rmtree(destination)
+        raise
 
 
 class Entry(object):
@@ -134,6 +159,24 @@ class FileStore(object):
             os.remove(storedfile)
             raise
         return filehash
+
+    def add_directory(self, newdir, metadata):
+        """Adds a directory given a path and dict of metadata.
+
+        The directory will be recursively copied to the store, and an entry
+        will be added to the database.
+        """
+        if not isinstance(newdir, basestring):
+            raise TypeError("newdir should be a string, not %s" % type(newdir))
+        dirhash = hash_directory(newdir)
+        storeddir = self.get_filename(dirhash, make_dir=True)
+        copy_directory(newdir, storeddir)
+        try:
+            self.metadata.add(dirhash, metadata)
+        except:
+            shutil.rmtree(storeddir)
+            raise
+        return dirhash
 
     def remove_file(self, filehash):
         """Removes a file given its SHA1 hash.
