@@ -147,11 +147,11 @@ class FileStore(object):
         else:
             return Entry(self, infos)
 
-    def query(self, conditions):
+    def query(self, conditions, limit=None):
         """Returns all the Entries matching the conditions.
 
         An EntryIterator is returned, with which you can access the different
         results.
         """
-        infos = self.metadata.query_all(conditions)
+        infos = self.metadata.query_all(conditions, limit)
         return EntryIterator(self, infos)

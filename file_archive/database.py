@@ -97,9 +97,13 @@ class MetadataStore(object):
         conditions is a dictionary of metadata that need to be included in the
         actual dict of each hash.
         """
-        # TODO
+        rows = self.query_all(conditions, limit=1)
+        try:
+            return rows.next()
+        except StopIteration:
+            return None
 
-    def query_all(self, conditions):
+    def query_all(self, conditions, limit=None):
         """Returns an iterable of rows matching the conditions.
 
         Each row is a dict, with at least the 'hash' key.
