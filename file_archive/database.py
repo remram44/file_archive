@@ -15,7 +15,7 @@ class MetadataStore(object):
                     SELECT name FROM sqlite_master WHERE type = 'table'
                     ''')
             if set(r['name'] for r in tables.fetchall()) != set([
-                    u'metadata', u'hashes']):
+                    u'hashes', u'metadata_str', u'metadata_int']):
                 raise InvalidStore("Database doesn't have required structure")
         except sqlite3.Error, e:
             raise InvalidStore("Cannot access database: %s: %s" % (
@@ -33,21 +33,22 @@ class MetadataStore(object):
                     CREATE INDEX hashes_idx ON hashes(hash)
                     ''')
 
-            conn.execute(u'''
-                    CREATE TABLE metadata(
-                        hash VARCHAR(40),
-                        mkey VARCHAR(255),
-                        mvalue VARCHAR(255))
-                    ''')
-            conn.execute(u'''
-                    CREATE INDEX hash_idx ON metadata(hash)
-                    ''')
-            conn.execute(u'''
-                    CREATE INDEX mkey_idx ON metadata(mkey)
-                    ''')
-            conn.execute(u'''
-                    CREATE INDEX mvalue_idx ON metadata(mvalue)
-                    ''')
+            for datatype, name in [('TEXT', 'str'), ('INTEGER', 'int')]:
+                conn.execute(u'''
+                        CREATE TABLE metadata_{n}(
+                            hash VARCHAR(40),
+                            mkey VARCHAR(255),
+                            mvalue {t})
+                        '''.format(n=name, t=datatype))
+                conn.execute(u'''
+                        CREATE INDEX hash_{n}_idx ON metadata_{n}(hash)
+                        '''.format(n=name))
+                conn.execute(u'''
+                        CREATE INDEX mkey_{n}_idx ON metadata_{n}(mkey)
+                        '''.format(n=name))
+                conn.execute(u'''
+                        CREATE INDEX mvalue_{n}_idx ON metadata_{n}(mvalue)
+                        '''.format(n=name))
             conn.commit()
             conn.close()
         except sqlite3.Error, e:
@@ -71,7 +72,7 @@ class MetadataStore(object):
                     ''',
                     {'hash': key})
             cur.executemany(u'''
-                    INSERT INTO metadata(hash, mkey, mvalue)
+                    INSERT INTO metadata_str(hash, mkey, mvalue)
                     VALUES(:hash, :key, :value)
                     ''',
                     ({'hash': key, 'key': k, 'value': v}
@@ -95,7 +96,7 @@ class MetadataStore(object):
             if cur.rowcount != 1:
                 raise KeyError(key)
             cur.execute(u'''
-                    DELETE FROM metadata WHERE hash = :hash
+                    DELETE FROM metadata_str WHERE hash = :hash
                     ''',
                     {'hash': key})
             self.conn.commit()
@@ -130,9 +131,10 @@ class MetadataStore(object):
         cur = self.conn.cursor()
         if not conditions:
             rows = cur.execute(u'''
-                    SELECT hashes.hash, metadata.mkey, metadata.mvalue
+                    SELECT hashes.hash, metadata_str.mkey, metadata_str.mvalue
                     FROM hashes
-                    LEFT OUTER JOIN metadata ON hashes.hash=metadata.hash
+                    LEFT OUTER JOIN metadata_str
+                            ON hashes.hash = metadata_str.hash
                     ORDER BY hashes.hash
                     {limit}
                     '''.format(limit=limit))
@@ -141,14 +143,14 @@ class MetadataStore(object):
             meta_key, meta_value = next(conditems)
             query = u'''
                     SELECT i0.hash
-                    FROM metadata i0
+                    FROM metadata_str i0
                     '''
             cond0, params = self._make_condition(0, meta_key, meta_value)
             params['key0'] = meta_key
             for j, (meta_key, meta_value) in enumerate(conditems):
                 cond, prms = self._make_condition(j+1, meta_key, meta_value)
                 query += u'''
-                        INNER JOIN metadata i{i} ON i0.hash = i{i}.hash
+                        INNER JOIN metadata_str i{i} ON i0.hash = i{i}.hash
                             AND i{i}.mkey = :key{i} AND {cond}
                         '''.format(i=j+1, cond=cond)
                 params['key%d' % (j+1)] = meta_key
@@ -158,7 +160,7 @@ class MetadataStore(object):
                     {limit}
                     '''.format(cond=cond0, limit=limit)
             rows = cur.execute(u'''
-                    SELECT hash, mkey, mvalue FROM metadata
+                    SELECT hash, mkey, mvalue FROM metadata_str
                     WHERE hash IN ({hashes})
                     ORDER BY hash
                     '''.format(hashes=query),
