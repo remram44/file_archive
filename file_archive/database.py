@@ -121,6 +121,10 @@ class MetadataStore(object):
 
         Each row is a dict, with at least the 'hash' key.
         """
+        if limit is not None:
+            limit = u'LIMIT %d' % limit
+        else:
+            limit = u''
         cur = self.conn.cursor()
         if not conditions:
             rows = cur.execute(u'''
@@ -128,7 +132,8 @@ class MetadataStore(object):
                     FROM hashes
                     LEFT OUTER JOIN metadata ON hashes.hash=metadata.hash
                     ORDER BY hashes.hash
-                    ''')
+                    {limit}
+                    '''.format(limit=limit))
         else:
             conditems = conditions.iteritems()
             meta_key, meta_value = next(conditems)
@@ -146,7 +151,8 @@ class MetadataStore(object):
                 params['val%d' % (j+1)] = meta_value
             query += u'''
                     WHERE i0.mkey = :key0 AND i0.mvalue = :val0
-                    '''
+                    {limit}
+                    '''.format(limit=limit)
             rows = cur.execute(u'''
                     SELECT hash, mkey, mvalue FROM metadata
                     WHERE hash IN ({hashes})
