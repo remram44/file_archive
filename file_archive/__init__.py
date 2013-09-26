@@ -23,10 +23,14 @@ def copy_file(fileobj, destination):
     """Copies a file object to a destination name.
     """
     with open(destination, 'wb') as destobj:
-        chunk = fileobj.read(CHUNKSIZE)
-        while chunk:
-            destobj.write(chunk)
+        try:
             chunk = fileobj.read(CHUNKSIZE)
+            while chunk:
+                destobj.write(chunk)
+                chunk = fileobj.read(CHUNKSIZE)
+        except:
+            os.remove(destination)
+            raise
 
 
 class Entry(object):
@@ -122,8 +126,13 @@ class FileStore(object):
         newfile.seek(0, os.SEEK_SET)
         filehash = hash_file(newfile)
         newfile.seek(0, os.SEEK_SET)
-        copy_file(newfile, self.get_filename(filehash, make_dir=True))
-        self.metadata.add(filehash, metadata)
+        storedfile = self.get_filename(filehash, make_dir=True)
+        copy_file(newfile, storedfile)
+        try:
+            self.metadata.add(filehash, metadata)
+        except:
+            os.remove(storedfile)
+            raise
         return filehash
 
     def remove_file(self, filehash):
