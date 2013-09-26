@@ -107,7 +107,7 @@ class MetadataStore(object):
         cur = self.conn.cursor()
         if not conditions:
             rows = cur.execute(u'''
-                    SELECT hash
+                    SELECT hashes.hash, metadata.mkey, metadata.mvalue
                     FROM hashes
                     LEFT OUTER JOIN metadata ON hashes.hash=metadata.hash
                     ORDER BY hashes.hash
@@ -168,7 +168,13 @@ class ResultBuilder(object):
         else:
             r = self.record
         h = r[0]
-        dct = {'hash': h, r[1]: r[2]}
+        # We might be outer-joining hashes with metadata, in which case a hash
+        # that is stored with no metadata will be returned as a single row
+        # hash=hash mkey=NULL mvalue=NULL
+        if len(r) == 3 and r[1]:
+            dct = {'hash': h, r[1]: r[2]}
+        else:
+            dct = {'hash': h}
 
         for r in self.rows:
             if r[0] != h:
