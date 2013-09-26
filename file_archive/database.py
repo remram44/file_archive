@@ -25,8 +25,7 @@ class MetadataStore(object):
             conn = sqlite3.connect(database)
             conn.execute(u'''
                     CREATE TABLE hashes(
-                        hash VARCHAR(40),
-                        creation_time DATETIME)
+                        hash VARCHAR(40))
                     ''')
             conn.execute(u'''
                     CREATE TABLE metadata(
@@ -52,8 +51,8 @@ class MetadataStore(object):
         cur = self.conn.cursor()
         try:
             cur.execute(u'''
-                    INSERT INTO hashes(hash, creation_time)
-                    VALUES(:hash, datetime())
+                    INSERT INTO hashes(hash)
+                    VALUES(:hash)
                     ''',
                     {'hash': key})
             cur.executemany(u'''
@@ -108,7 +107,7 @@ class MetadataStore(object):
         cur = self.conn.cursor()
         if not conditions:
             rows = cur.execute(u'''
-                    SELECT hash, creation_time
+                    SELECT hash
                     FROM hashes
                     LEFT OUTER JOIN metadata ON hashes.hash=metadata.hash
                     ORDER BY hashes.hash
@@ -137,7 +136,6 @@ class MetadataStore(object):
                     ORDER BY hash
                     '''.format(hashes=query),
                     params)
-            # TODO : creation_time is missing here
 
         return ResultBuilder(rows)
 
