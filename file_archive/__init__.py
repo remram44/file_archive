@@ -108,12 +108,16 @@ class FileStore(object):
         if os.path.exists(path):
             if not os.path.isdir(path) or os.listdir(path):
                 raise CreationError("Path is not a directory or is not empty")
+            exists = True
+        else:
+            exists = False
         try:
-            os.mkdir(path)
+            if not exists:
+                os.mkdir(path)
             os.mkdir(os.path.join(path, 'objects'))
         except OSError, e:
             raise CreationError("Could not create directories: %s: %s" % (
-                    e.__class__.__name__))
+                    e.__class__.__name__, e.message))
         MetadataStore.create_db(os.path.join(path, 'database'))
 
     def close(self):
