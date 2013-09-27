@@ -1,11 +1,13 @@
 import sqlite3
 
-from .errors import CreationError, InvalidStore
+from .errors import Error, CreationError, InvalidStore
 
 
 class MetadataStore(object):
     """The database holding metadata associated to SHA1 hashs.
     """
+    _TYPES = [('TEXT', 'str'), ('INTEGER', 'int')]
+
     def __init__(self, database):
         try:
             self.conn = sqlite3.connect(database)
@@ -14,8 +16,7 @@ class MetadataStore(object):
             tables = cur.execute(u'''
                     SELECT name FROM sqlite_master WHERE type = 'table'
                     ''')
-            if set(r['name'] for r in tables.fetchall()) != set([
-                    u'metadata', u'hashes']):
+            if set(r['name'] for r in tables.fetchall()) != set([u'metadata']):
                 raise InvalidStore("Database doesn't have required structure")
         except sqlite3.Error, e:
             raise InvalidStore("Cannot access database: %s: %s" % (
@@ -25,29 +26,29 @@ class MetadataStore(object):
     def create_db(database):
         try:
             conn = sqlite3.connect(database)
-            conn.execute(u'''
-                    CREATE TABLE hashes(
-                        hash VARCHAR(40))
-                    ''')
-            conn.execute(u'''
-                    CREATE INDEX hashes_idx ON hashes(hash)
-                    ''')
-
-            conn.execute(u'''
+            query = u'''
                     CREATE TABLE metadata(
-                        hash VARCHAR(40),
-                        mkey VARCHAR(255),
-                        mvalue VARCHAR(255))
-                    ''')
-            conn.execute(u'''
-                    CREATE INDEX hash_idx ON metadata(hash)
-                    ''')
-            conn.execute(u'''
-                    CREATE INDEX mkey_idx ON metadata(mkey)
-                    ''')
-            conn.execute(u'''
-                    CREATE INDEX mvalue_idx ON metadata(mvalue)
-                    ''')
+                        hash VARCHAR(40) NOT NULL,
+                        mkey VARCHAR(255) NULL
+                    '''
+            indexes = [
+                    u'CREATE INDEX hash_idx ON metadata(hash)',
+                    u'CREATE INDEX mkey_idx ON metadata(mkey)']
+
+            for datatype, name in MetadataStore._TYPES:
+                query += u'''
+                        , mvalue_{name} {type} NULL
+                        '''.format(name=name, type=datatype)
+                indexes.append(u'''
+                        CREATE INDEX mvalue_{name} ON metadata(mvalue_{name})
+                        '''.format(name=name))
+            query += u')'
+
+            cur = conn.cursor()
+            cur.execute(query)
+            for idx_query in indexes:
+                cur.execute(idx_query)
+
             conn.commit()
             conn.close()
         except sqlite3.Error, e:
@@ -65,17 +66,31 @@ class MetadataStore(object):
         """
         cur = self.conn.cursor()
         try:
-            cur.execute(u'''
-                    INSERT INTO hashes(hash)
-                    VALUES(:hash)
-                    ''',
-                    {'hash': key})
-            cur.executemany(u'''
-                    INSERT INTO metadata(hash, mkey, mvalue)
-                    VALUES(:hash, :key, :value)
-                    ''',
-                    ({'hash': key, 'key': k, 'value': v}
-                     for k, v in metadata.iteritems()))
+            if not metadata:
+                cur.execute(u'''
+                        INSERT INTO metadata(hash) VALUES(:hash)
+                        ''',
+                        {'hash': key})
+            else:
+                for mkey, mvalue in metadata.iteritems():
+                    if isinstance(mvalue, basestring):
+                        t = 'str'
+                    elif isinstance(mvalue, (int, long)):
+                        t = 'int'
+                    elif isinstance(mvalue, dict):
+                        r = dict(mvalue)
+                        t = r.pop('type')
+                        mvalue = r.pop('value')
+                    else:
+                        raise TypeError(
+                                "Metadata values should be dictionaries with "
+                                "the format:\n"
+                                "{'type': 'int/str/...', 'value': <value>}")
+                    cur.execute(u'''
+                            INSERT INTO metadata(hash, mkey, mvalue_{name})
+                            VALUES(:hash, :key, :value)
+                            '''.format(name=t, hash=mkey, value=mvalue),
+                            {'hash': key, 'key': mkey, 'value': mvalue})
             self.conn.commit()
         except:
             self.conn.rollback()
@@ -89,15 +104,11 @@ class MetadataStore(object):
         cur = self.conn.cursor()
         try:
             cur.execute(u'''
-                    DELETE FROM hashes WHERE hash = :hash
-                    ''',
-                    {'hash': key})
-            if cur.rowcount != 1:
-                raise KeyError(key)
-            cur.execute(u'''
                     DELETE FROM metadata WHERE hash = :hash
                     ''',
                     {'hash': key})
+            if not cur.rowcount:
+                raise KeyError(key)
             self.conn.commit()
         except:
             self.conn.rollback()
@@ -123,51 +134,69 @@ class MetadataStore(object):
 
         Each row is a dict, with at least the 'hash' key.
         """
+        # Build the LIMIT part from the limit arg (number or None)
         if limit is not None:
             limit = u'LIMIT %d' % limit
         else:
             limit = u''
+
         cur = self.conn.cursor()
         if not conditions:
-            rows = cur.execute(u'''
-                    SELECT hashes.hash, metadata.mkey, metadata.mvalue
-                    FROM hashes
-                    LEFT OUTER JOIN metadata ON hashes.hash=metadata.hash
-                    ORDER BY hashes.hash
+            hquery = u'''
+                    SELECT DISTINCT hash
+                    FROM metadata
                     {limit}
-                    '''.format(limit=limit))
+                    '''.format(limit=limit)
+            params = {}
         else:
             conditems = conditions.iteritems()
             meta_key, meta_value = next(conditems)
-            query = u'''
+            cond0, params = self._make_condition(0, meta_key, meta_value)
+            hquery = u'''
                     SELECT i0.hash
                     FROM metadata i0
                     '''
-            cond0, params = self._make_condition(0, meta_key, meta_value)
             params['key0'] = meta_key
             for j, (meta_key, meta_value) in enumerate(conditems):
                 cond, prms = self._make_condition(j+1, meta_key, meta_value)
-                query += u'''
+                hquery += u'''
                         INNER JOIN metadata i{i} ON i0.hash = i{i}.hash
                             AND i{i}.mkey = :key{i} AND {cond}
                         '''.format(i=j+1, cond=cond)
                 params['key%d' % (j+1)] = meta_key
                 params.update(prms)
-            query += u'''
+            hquery += u'''
                     WHERE i0.mkey = :key0 AND {cond}
                     {limit}
                     '''.format(cond=cond0, limit=limit)
-            rows = cur.execute(u'''
-                    SELECT hash, mkey, mvalue FROM metadata
-                    WHERE hash IN ({hashes})
-                    ORDER BY hash
-                    '''.format(hashes=query),
-                    params)
+
+        # And we put that in the query
+        rows = cur.execute(u'''
+                SELECT *
+                FROM metadata
+                WHERE hash IN ({hashes})
+                ORDER BY hash
+                '''.format(hashes=hquery),
+                params)
 
         return ResultBuilder(rows)
 
     def _make_condition(self, i, key, value):
-        return ('i{i}.mvalue = :val{i}'.format(i=i),
+        if isinstance(value, basestring):
+            t = 'str'
+            req = ('equal', value)
+        elif isinstance(value, (int, long)):
+            t = 'int'
+            req = 'equal'
+        elif isinstance(value, dict):
+            req = dict(value)
+            t = req.pop('type')
+        else:
+            raise TypeError(
+                    "Query conditions should be dictionaries with the "
+                    "format:\n"
+                    "{'type': 'int/str/...', <condition>}")
+        return ('i{i}.mvalue_{t} = :val{i}'.format(i=i, t=t),
                 {'val%d' % i: value})
 
 
@@ -199,11 +228,18 @@ class ResultBuilder(object):
         else:
             r = self.record
         h = r['hash']
-        # We might be outer-joining hashes with metadata, in which case a hash
-        # that is stored with no metadata will be returned as a single row
-        # hash=hash mkey=NULL mvalue=NULL
+        def get_value(r):
+            for datatype, name in MetadataStore._TYPES:
+                v = r['mvalue_%s' % name]
+                if v is not None:
+                    return v
+            else:
+                raise Error("SQL query didn't return a value for "
+                            "hash=%s, key=%s" % (r['hash'], r['mkey']))
+        # We are outer joining, so a hash with no metadata will be returned as
+        # a single row with mkey=NULL and everything but hash NULL
         if len(r) == 3 and r['mkey']:
-            dct = {'hash': h, r['mkey']: r['mvalue']}
+            dct = {'hash': h, r['mkey']: get_value(r)}
         else:
             dct = {'hash': h}
 
@@ -211,7 +247,7 @@ class ResultBuilder(object):
             if r['hash'] != h:
                 self.record = r
                 return dct
-            dct[r['mkey']] = r['mvalue']
+            dct[r['mkey']] = get_value(r)
         else:
             self.rows = None
         return dct
