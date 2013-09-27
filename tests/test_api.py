@@ -46,3 +46,30 @@ class TestCreate(unittest.TestCase):
             FileStore.create_store(d)
             with self.assertRaises(CreationError):
                 FileStore.create_store(d)
+
+
+class TestStore(unittest.TestCase):
+    """Tests opening the store and using it.
+    """
+    def setUp(self):
+        self.path = tempfile.mkdtemp(prefix='test_file_archive_')
+        FileStore.create_store(self.path)
+        self.store = FileStore(self.path)
+        testfiles = os.path.join(os.path.dirname(__file__), 'testfiles')
+        self.t = lambda f: os.path.join(testfiles, f)
+
+    def tearDown(self):
+        self.store = None
+        shutil.rmtree(self.path)
+
+    def test_req_empty(self):
+        self.assertEqual(list(self.store.query({})), [])
+
+    def test_putfile(self):
+        h1 = self.store.add_file(self.t('file1.bin'), {})
+        self.assertEqual(h1, '6edc650f52e26ce867b3765e0563dc3e445cdaa9')
+        self.assertTrue(os.path.isfile(os.path.join(
+                self.path,
+                'objects',
+                '6e',
+                'dc650f52e26ce867b3765e0563dc3e445cdaa9')))
