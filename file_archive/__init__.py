@@ -91,8 +91,6 @@ class EntryIterator(object):
         return Entry(self.store, self.infos.next())
 
 
-# TODO : handle directories
-
 class FileStore(object):
     """Represents a file store.
     """
