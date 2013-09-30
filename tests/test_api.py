@@ -146,3 +146,33 @@ class TestStore(unittest.TestCase):
         self.store.remove(h[1])
         assert_many({'a': 'aa'}, [])
         assert_many({'d': 'common'}, [h[3]])
+
+    def test_open(self):
+        h = self.store.add_file(self.t('file1.bin'), {'findme': 'here'})
+        entry = self.store.query_one({'findme': 'here'})
+        self.assertEqual(entry.metadata, {'hash': h, 'findme': 'here'})
+        self.assertEqual(
+                os.path.realpath(entry.filename),
+                os.path.realpath(os.path.join(
+                        self.path,
+                        'objects',
+                        h[:2], h[2:])))
+        c = ('this is some\n'
+             'random content\n'
+             'note LF line endings\n')
+        fp = entry.open()
+        try:
+            self.assertEqual(fp.read(), c)
+        finally:
+            fp.close()
+        fp = self.store.open_file(h)
+        try:
+            self.assertEqual(fp.read(), c)
+        finally:
+            fp.close()
+        with self.assertRaises(KeyError):
+            self.store.open_file('notahash')
+        with self.assertRaises(TypeError):
+            self.store.open_file(42)
+        self.store.remove(entry)
+        self.assertIsNone(self.store.query_one({'findme': 'here'}))

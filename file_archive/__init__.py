@@ -124,11 +124,11 @@ class FileStore(object):
         self.metadata.close()
         self.metadata = None
 
-    def open_file(self, filehash):
+    def open_file(self, filehash, binary=True):
         """Returns a file object for a given SHA1 hash.
         """
         try:
-            open(self.get_filename(filehash), 'rb')
+            return open(self.get_filename(filehash), 'rb' if binary else 'r')
         except IOError:
             raise KeyError("No file with hash %s" % filehash)
 
