@@ -203,28 +203,43 @@ class MetadataStore(object):
         return ResultBuilder(rows)
 
     def _make_conditions(self, conditions):
-        i = 0
-        for key, value in conditions.iteritems():
+        for i, (key, value) in enumerate(conditions.iteritems()):
             if isinstance(value, basestring):
                 t = 'str'
-                req = ('equal', value)
+                req = [('equal', value)]
             elif isinstance(value, (int, long)):
                 t = 'int'
-                req = 'equal'
+                req = [('equal', value)]
             elif isinstance(value, dict):
-                # TODO : range queries
                 req = dict(value)
                 t = req.pop('type')
+                req = req.iteritems()
+                if t not in ('str', 'int'):
+                    raise TypeError("Unknown data type %r" % t)
             else:
                 raise TypeError(
                         "Query conditions should be dictionaries with the "
                         "format:\n"
                         "{'type': 'int/str/...', <condition>}")
+
+            var = 'i{i}.mvalue_{t}'.format(i=i, t=t)
+            conds = []
+            params = {}
+            for j, (k, v) in enumerate(req):
+                val = ':val{i}_{j}'.format(i=i, j=j)
+                params['val%d_%d' % (i, j)] = v
+                if k == 'equal':
+                    conds.append('{var} = {val}'.format(var=var, val=val))
+                elif t == 'int' and k == 'lt':
+                    conds.append('{var} < {val}'.format(var=var, val=val))
+                elif t == 'int' and k == 'gt':
+                    conds.append('{var} > {val}'.format(var=var, val=val))
+                else:
+                    raise ValueError("Unsupported operation %r" % k)
             yield (i,
                    key,
-                   'i{i}.mvalue_{t} = :val{i}'.format(i=i, t=t),
-                   {'val%d' % i: value})
-            i += 1
+                   ' AND '.join(conds),
+                   params)
 
 
 class ResultBuilder(object):

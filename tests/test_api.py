@@ -146,6 +146,9 @@ class TestStore(unittest.TestCase):
         assert_many({'a': 'bb', 'c': 12}, [])
         assert_many({'a': 'aa', 'c': 5}, [])
 
+        assert_many({'c': {'type': 'int', 'gt': 5, 'lt': 15}}, [h[1]])
+        assert_many({'c': {'type': 'int', 'gt': 5}}, [h[1], h[2]])
+
         # TODO : range queries
 
         self.store.remove(h[1])
