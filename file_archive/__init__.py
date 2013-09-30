@@ -194,6 +194,8 @@ class FileStore(object):
         if isinstance(objecthash, Entry):
             objecthash = objecthash['hash']
         objectpath = self.get_filename(objecthash)
+        if not os.path.exists(objectpath):
+            raise KeyError("No object with hash %s" % objecthash)
         if os.path.isdir(objectpath):
             shutil.rmtree(objectpath)
         else:

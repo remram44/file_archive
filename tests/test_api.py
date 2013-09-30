@@ -83,13 +83,16 @@ class TestStore(unittest.TestCase):
         self.assertEqual(list(self.store.query({})), [])
 
     def test_putfile(self):
-        h1 = self.store.add_file(self.t('file1.bin'), {})
+        h1 = self.store.add_file(self.t('file1.bin'), {'a': 'b'})
         self.assertEqual(h1, '6edc650f52e26ce867b3765e0563dc3e445cdaa9')
         self.assertTrue(os.path.isfile(os.path.join(
                 self.path,
                 'objects',
                 '6e',
                 'dc650f52e26ce867b3765e0563dc3e445cdaa9')))
+        self.assertEqual(
+                self.store.get(h1).metadata,
+                {'hash': h1, 'a': 'b'})
 
     def test_put_twice(self):
         self.assertIsNotNone(self.store.add_file(self.t('file1.bin'), {}))
@@ -180,3 +183,7 @@ class TestStore(unittest.TestCase):
             self.store.open_file(42)
         self.store.remove(entry)
         self.assertIsNone(self.store.query_one({'findme': 'here'}))
+        with self.assertRaises(KeyError):
+            self.store.remove(h)
+        with self.assertRaises(KeyError):
+            self.store.get(h)
