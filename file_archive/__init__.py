@@ -158,6 +158,8 @@ class FileStore(object):
         filehash = hash_file(newfile)
         newfile.seek(0, os.SEEK_SET)
         storedfile = self.get_filename(filehash, make_dir=True)
+        if os.path.exists(storedfile):
+            raise KeyError("This file already exists in the store")
         copy_file(newfile, storedfile)
         try:
             self.metadata.add(filehash, metadata)

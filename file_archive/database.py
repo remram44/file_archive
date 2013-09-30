@@ -66,6 +66,14 @@ class MetadataStore(object):
         """
         cur = self.conn.cursor()
         try:
+            cur.execute(u'''
+                    SELECT hash FROM metadata
+                    WHERE hash = :hash
+                    LIMIT 1
+                    ''',
+                    {'hash': key})
+            if cur.fetchone() is not None:
+                raise KeyError("Already have metadata for hash")
             if not metadata:
                 cur.execute(u'''
                         INSERT INTO metadata(hash) VALUES(:hash)

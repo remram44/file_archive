@@ -59,6 +59,7 @@ class TestStore(unittest.TestCase):
         self.t = lambda f: os.path.join(testfiles, f)
 
     def tearDown(self):
+        self.store.close()
         self.store = None
         shutil.rmtree(self.path)
 
@@ -73,3 +74,8 @@ class TestStore(unittest.TestCase):
                 'objects',
                 '6e',
                 'dc650f52e26ce867b3765e0563dc3e445cdaa9')))
+
+    def test_put_twice(self):
+        self.assertIsNotNone(self.store.add_file(self.t('file1.bin'), {}))
+        with self.assertRaises(KeyError):
+            self.store.add_file(self.t('file1.bin'), {})
