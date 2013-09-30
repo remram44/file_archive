@@ -115,7 +115,7 @@ class FileStore(object):
             if not exists:
                 os.mkdir(path)
             os.mkdir(os.path.join(path, 'objects'))
-        except OSError, e:
+        except OSError, e: # pragma: no cover
             raise CreationError("Could not create directories: %s: %s" % (
                     e.__class__.__name__, e.message))
         MetadataStore.create_db(os.path.join(path, 'database'))

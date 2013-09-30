@@ -9,7 +9,7 @@ except ImportError:
     import unittest
 
 from file_archive import FileStore
-from file_archive.errors import CreationError
+from file_archive.errors import CreationError, InvalidStore
 
 
 @contextlib.contextmanager
@@ -19,7 +19,7 @@ def temp_dir(make=True):
         if make:
             yield path
         else:
-            yield path + 'internal'
+            yield os.path.join(path, 'internal')
     finally:
         shutil.rmtree(path)
 
@@ -46,6 +46,22 @@ class TestCreate(unittest.TestCase):
             FileStore.create_store(d)
             with self.assertRaises(CreationError):
                 FileStore.create_store(d)
+
+
+class TestOpen(unittest.TestCase):
+    def test_open_invalid(self):
+        with temp_dir() as d:
+            with self.assertRaises(InvalidStore):
+                FileStore(d)
+        with temp_dir() as d:
+            os.mkdir(os.path.join(d, 'objects'))
+            with self.assertRaises(InvalidStore):
+                FileStore(d)
+        with temp_dir() as d:
+            with open(os.path.join(d, 'database'), 'wb'):
+                pass
+            with self.assertRaises(InvalidStore):
+                FileStore(d)
 
 
 class TestStore(unittest.TestCase):
