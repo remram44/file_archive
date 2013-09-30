@@ -246,7 +246,7 @@ class ResultBuilder(object):
                             "hash=%s, key=%s" % (r['hash'], r['mkey']))
         # We are outer joining, so a hash with no metadata will be returned as
         # a single row with mkey=NULL and everything but hash NULL
-        if len(r) == 3 and r['mkey']:
+        if len(r) > 1 and r['mkey']:
             dct = {'hash': h, r['mkey']: get_value(r)}
         else:
             dct = {'hash': h}

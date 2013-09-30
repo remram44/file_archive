@@ -87,10 +87,13 @@ class TestStore(unittest.TestCase):
                 self.assertIsNone(expected)
             else:
                 self.assertEqual(entry['hash'], expected)
+                self.assertEqual(entry.metadata, meta[expected])
         def assert_many(cond, expected):
             entries = self.store.query(cond)
             hashes = set(entry['hash'] for entry in entries)
             self.assertEqual(hashes, set(expected))
+            for entry in entries:
+                self.assertEqual(entry.metadata, meta[entry['hash']])
 
         files = [
                 ('file1.bin', {}),
@@ -100,6 +103,7 @@ class TestStore(unittest.TestCase):
             ]
 
         h = []
+        meta = {}
         for i, (f, m) in enumerate(files):
             if i % 2 == 0:
                 r = self.store.add_file(self.t(f), m)
@@ -107,6 +111,8 @@ class TestStore(unittest.TestCase):
                 with open(self.t(f), 'rb') as fp:
                     r = self.store.add_file(fp, m)
             h.append(r)
+            m['hash'] = r
+            meta[r] = m
 
         assert_one({'c': 41}, h[2])
         assert_many({'c': 41}, [h[2]])
