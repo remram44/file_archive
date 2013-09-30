@@ -212,7 +212,11 @@ class MetadataStore(object):
                 req = [('equal', value)]
             elif isinstance(value, dict):
                 req = dict(value)
-                t = req.pop('type')
+                try:
+                    t = req.pop('type')
+                except KeyError:
+                    raise TypeError("Query conditions should include key "
+                                     "'type'")
                 req = req.iteritems()
                 if t not in ('str', 'int'):
                     raise TypeError("Unknown data type %r" % t)

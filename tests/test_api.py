@@ -149,7 +149,10 @@ class TestStore(unittest.TestCase):
         assert_many({'c': {'type': 'int', 'gt': 5, 'lt': 15}}, [h[1]])
         assert_many({'c': {'type': 'int', 'gt': 5}}, [h[1], h[2]])
 
-        # TODO : range queries
+        with self.assertRaises(TypeError):
+            self.store.query({'c': {'whatsthis': 'value'}})
+        with self.assertRaises(ValueError):
+            self.store.query({'c': {'type': 'int', 'whatsthis': 'value'}})
 
         self.store.remove(h[1])
         assert_many({'a': 'aa'}, [])
