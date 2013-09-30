@@ -219,3 +219,8 @@ class FileStore(object):
         """
         infos = self.metadata.query_all(conditions, limit)
         return EntryIterator(self, infos)
+
+    def verify(self):
+        """Checks the integrity of the store.
+        """
+        # TODO : verify
