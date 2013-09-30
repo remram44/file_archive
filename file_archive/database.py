@@ -197,6 +197,7 @@ class MetadataStore(object):
             t = 'int'
             req = 'equal'
         elif isinstance(value, dict):
+            # TODO : range queries
             req = dict(value)
             t = req.pop('type')
         else:
