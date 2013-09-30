@@ -172,21 +172,19 @@ class MetadataStore(object):
                     '''.format(limit=limit)
             params = {}
         else:
-            conditems = conditions.iteritems()
-            meta_key, meta_value = next(conditems)
-            cond0, params = self._make_condition(0, meta_key, meta_value)
+            conditems = self._make_conditions(conditions)
+            i, key, cond0, params = next(conditems)
             hquery = u'''
                     SELECT i0.hash
                     FROM metadata i0
                     '''
-            params['key0'] = meta_key
-            for j, (meta_key, meta_value) in enumerate(conditems):
-                cond, prms = self._make_condition(j+1, meta_key, meta_value)
+            params['key0'] = key
+            for i, key, cond, prms in conditems:
                 hquery += u'''
                         INNER JOIN metadata i{i} ON i0.hash = i{i}.hash
                             AND i{i}.mkey = :key{i} AND {cond}
-                        '''.format(i=j+1, cond=cond)
-                params['key%d' % (j+1)] = meta_key
+                        '''.format(i=i, cond=cond)
+                params['key%d' % (i)] = key
                 params.update(prms)
             hquery += u'''
                     WHERE i0.mkey = :key0 AND {cond}
@@ -204,24 +202,29 @@ class MetadataStore(object):
 
         return ResultBuilder(rows)
 
-    def _make_condition(self, i, key, value):
-        if isinstance(value, basestring):
-            t = 'str'
-            req = ('equal', value)
-        elif isinstance(value, (int, long)):
-            t = 'int'
-            req = 'equal'
-        elif isinstance(value, dict):
-            # TODO : range queries
-            req = dict(value)
-            t = req.pop('type')
-        else:
-            raise TypeError(
-                    "Query conditions should be dictionaries with the "
-                    "format:\n"
-                    "{'type': 'int/str/...', <condition>}")
-        return ('i{i}.mvalue_{t} = :val{i}'.format(i=i, t=t),
-                {'val%d' % i: value})
+    def _make_conditions(self, conditions):
+        i = 0
+        for key, value in conditions.iteritems():
+            if isinstance(value, basestring):
+                t = 'str'
+                req = ('equal', value)
+            elif isinstance(value, (int, long)):
+                t = 'int'
+                req = 'equal'
+            elif isinstance(value, dict):
+                # TODO : range queries
+                req = dict(value)
+                t = req.pop('type')
+            else:
+                raise TypeError(
+                        "Query conditions should be dictionaries with the "
+                        "format:\n"
+                        "{'type': 'int/str/...', <condition>}")
+            yield (i,
+                   key,
+                   'i{i}.mvalue_{t} = :val{i}'.format(i=i, t=t),
+                   {'val%d' % i: value})
+            i += 1
 
 
 class ResultBuilder(object):
