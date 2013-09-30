@@ -51,7 +51,7 @@ class MetadataStore(object):
 
             conn.commit()
             conn.close()
-        except sqlite3.Error, e:
+        except sqlite3.Error, e: # pragma: no cover
             raise CreationError("Could not create database: %s: %s" % (
                     e.__class__.__name__, e.message))
 
@@ -225,7 +225,7 @@ class ResultBuilder(object):
         self.rows = iter(rows)
         self.record = None
 
-    def __iter__(self):
+    def __iter__(self): # pragma: no cover
         return self
 
     def next(self):
@@ -241,7 +241,7 @@ class ResultBuilder(object):
                 v = r['mvalue_%s' % name]
                 if v is not None:
                     return v
-            else:
+            else: # pragma: no cover
                 raise Error("SQL query didn't return a value for "
                             "hash=%s, key=%s" % (r['hash'], r['mkey']))
         # We are outer joining, so a hash with no metadata will be returned as
