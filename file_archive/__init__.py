@@ -200,6 +200,12 @@ class FileStore(object):
             os.remove(objectpath)
         self.metadata.remove(objecthash)
 
+    def get(self, objecthash):
+        """Gets an Entry from a hash.
+        """
+        infos = self.metadata.get(objecthash) # Might raise KeyError
+        return Entry(self, infos)
+
     def query_one(self, conditions):
         """Returns at most one Entry matching the conditions.
 

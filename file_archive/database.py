@@ -122,6 +122,21 @@ class MetadataStore(object):
             self.conn.rollback()
             raise
 
+    def get(self, key):
+        """Gets a row from the hash.
+        """
+        cur = self.conn.cursor()
+        rows = cur.execute(u'''
+                SELECT * FROM metadata
+                WHERE hash = :hash
+                ''',
+                {'hash': key})
+        result = ResultBuilder(rows)
+        try:
+            return next(result)
+        except StopIteration:
+            raise KeyError("No metadata for hash")
+
     def query_one(self, conditions):
         """Returns at most one row matching the conditions, as a dict.
 
