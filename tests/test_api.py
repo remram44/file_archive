@@ -114,14 +114,16 @@ class TestStore(unittest.TestCase):
         files = [
                 ('file1.bin', {}),
                 ('file2.bin', {'a': 'aa', 'c': 12, 'd': 'common'}),
-                 ('file3.bin', {'a': 'bb', 'c': 41}),
-                 ('file4.bin', {'c': '12', 'd': 'common'}),
+                 ('dir3', {'a': 'bb', 'c': 41}),
+                 ('dir4', {'c': '12', 'd': 'common'}),
             ]
 
         h = []
         meta = {}
-        for i, (f, m) in enumerate(files):
-            if i % 2 == 0:
+        for f, m in files:
+            if f.startswith('dir'):
+                r = self.store.add_directory(self.t(f), m)
+            elif f != 'file2.bin':
                 r = self.store.add_file(self.t(f), m)
             else:
                 with open(self.t(f), 'rb') as fp:
@@ -146,6 +148,8 @@ class TestStore(unittest.TestCase):
         self.store.remove(h[1])
         assert_many({'a': 'aa'}, [])
         assert_many({'d': 'common'}, [h[3]])
+        self.store.remove(h[3])
+        assert_many({'d': 'common'}, [])
 
     def test_open(self):
         h = self.store.add_file(self.t('file1.bin'), {'findme': 'here'})
