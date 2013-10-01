@@ -11,3 +11,8 @@ class InvalidStore(ValueError, Error):
 class CreationError(IOError, Error):
     """Failed to create a new store at the given path.
     """
+
+
+class UsageWarning(UserWarning):
+    """Something unsafe was requested and carried out.
+    """

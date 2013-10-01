@@ -1,5 +1,7 @@
+import logging
 import os
 import sys
+import warnings
 
 from file_archive import FileStore, CHUNKSIZE
 
@@ -144,6 +146,10 @@ commands = {
 
 
 def main():
+    logging.basicConfig()
+    logging.captureWarnings(True)
+    warnings.simplefilter('once')
+
     usage = (
             "usage: {bin} <store> create\n"
             "   or: {bin} <store> add <filename> [key1=value1] [...]\n"

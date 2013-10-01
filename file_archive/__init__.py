@@ -1,9 +1,10 @@
 import hashlib
 import os
 import shutil
+import warnings
 
 from .database import MetadataStore
-from .errors import CreationError, InvalidStore
+from .errors import CreationError, InvalidStore, UsageWarning
 
 
 CHUNKSIZE = 4096
@@ -34,15 +35,29 @@ def copy_file(fileobj, destination):
             raise
 
 
-def hash_directory(path):
+def hash_directory(path, visited=None):
     """Hashes a directory to a 40 hex character string.
     """
     h = hashlib.sha1()
+    if visited is None:
+        visited = set()
+    if os.path.realpath(path) in visited:
+        raise ValueError("Can't hash directory structure: loop detected at "
+                         "%s" % path)
+    visited.add(os.path.realpath(path))
     for f in os.listdir(path):
         pf = os.path.join(path, f)
         if os.path.isdir(pf):
-            h.update('dir %s %s\n' % (f, hash_directory(pf)))
+            if os.path.islink(pf):
+                warnings.warn("%s is a symbolic link, recursing on target "
+                              "directory" % pf,
+                              UsageWarning)
+            h.update('dir %s %s\n' % (f, hash_directory(pf, visited)))
         else:
+            if os.path.islink(pf):
+                warnings.warn("%s is a symbolic link, using target file "
+                              "instead" % pf,
+                              UsageWarning)
             with open(pf, 'rb') as fd:
                 h.update('file %s %s\n' % (f, hash_file(fd)))
     return h.hexdigest()
@@ -51,6 +66,7 @@ def hash_directory(path):
 def copy_directory(sourcepath, destination):
     """Copies a directory recursively to a destination name.
     """
+    # We don't display a warning for links, hash_directory() does that
     try:
         shutil.copytree(sourcepath, destination)
     except:
@@ -153,6 +169,10 @@ class FileStore(object):
         its SHA1 hash, and a second time to write it to disk.
         """
         if isinstance(newfile, basestring):
+            if os.path.islink(newfile):
+                warnings.warn("%s is a symbolic link, using target file "
+                              "instead" % newfile,
+                              UsageWarning)
             newfile = open(newfile, 'rb')
         newfile.seek(0, os.SEEK_SET)
         filehash = hash_file(newfile)
