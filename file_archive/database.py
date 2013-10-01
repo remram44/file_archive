@@ -81,30 +81,11 @@ class MetadataStore(object):
                         {'hash': key})
             else:
                 for mkey, mvalue in metadata.iteritems():
-                    if isinstance(mvalue, basestring):
-                        t = 'str'
-                    elif isinstance(mvalue, (int, long)):
-                        t = 'int'
-                    elif isinstance(mvalue, dict):
-                        r = dict(mvalue)
-                        try:
-                            t = r.pop('type')
-                            mvalue = r.pop('value')
-                            if r: raise KeyError
-                        except KeyError:
-                            raise ValueError("Metadata values should be "
-                                             "dictionaries with the format:\n"
-                                             "{'type': 'int/str/...', "
-                                             "'value': <value>}")
-                    else:
-                        raise TypeError(
-                                "Metadata values should be dictionaries with "
-                                "the format:\n"
-                                "{'type': 'int/str/...', 'value': <value>}")
+                    mtype, mvalue = self._make_value(mvalue)
                     cur.execute(u'''
                             INSERT INTO metadata(hash, mkey, mvalue_{name})
                             VALUES(:hash, :key, :value)
-                            '''.format(name=t, hash=mkey, value=mvalue),
+                            '''.format(name=mtype),
                             {'hash': key, 'key': mkey, 'value': mvalue})
             self.conn.commit()
         except:
@@ -251,6 +232,28 @@ class MetadataStore(object):
                    key,
                    ' AND '.join(conds),
                    params)
+
+    def _make_value(self, value):
+        errcls = ValueError
+        if isinstance(value, basestring):
+            return 'str', value
+        elif isinstance(value, (int, long)):
+            return 'int', value
+        elif isinstance(value, dict):
+            r = dict(value)
+            try:
+                t = r.pop('type')
+                value = r.pop('value')
+                if t in ('str', 'int'):
+                    return t, value
+            except KeyError:
+                pass
+        else:
+            errcls = TypeError
+        raise errcls(
+                "Metadata values should be dictionaries with "
+                "the format:\n"
+                "{'type': 'int/str/...', 'value': <value>}")
 
 
 class ResultBuilder(object):

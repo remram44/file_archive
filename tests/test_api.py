@@ -188,6 +188,14 @@ class TestStore(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.store.add_directory('/this/path/doesnt/exist', {})
 
+    def test_bad_metadata(self):
+        with self.assertRaises(TypeError):
+            self.store.add_file(self.t('file1.bin'), {'key': ()})
+        with self.assertRaises(ValueError):
+            self.store.add_file(
+                    self.t('file1.bin'),
+                    {'key': {'type': 'blah', 'value': ()}})
+
     def test_open(self):
         h = self.store.add_file(self.t('file1.bin'), {'findme': 'here'})
         entry = self.store.query_one({'findme': 'here'})
