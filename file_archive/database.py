@@ -87,8 +87,15 @@ class MetadataStore(object):
                         t = 'int'
                     elif isinstance(mvalue, dict):
                         r = dict(mvalue)
-                        t = r.pop('type')
-                        mvalue = r.pop('value')
+                        try:
+                            t = r.pop('type')
+                            mvalue = r.pop('value')
+                            if r: raise KeyError
+                        except KeyError:
+                            raise ValueError("Metadata values should be "
+                                             "dictionaries with the format:\n"
+                                             "{'type': 'int/str/...', "
+                                             "'value': <value>}")
                     else:
                         raise TypeError(
                                 "Metadata values should be dictionaries with "

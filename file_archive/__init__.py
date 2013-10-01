@@ -196,7 +196,10 @@ class FileStore(object):
         """
         if not isinstance(newdir, basestring):
             raise TypeError("newdir should be a string, not %s" % type(newdir))
-        dirhash = hash_directory(newdir)
+        try:
+            dirhash = hash_directory(newdir)
+        except (IOError, OSError):
+            raise ValueError("Can't access directory")
         storeddir = self.get_filename(dirhash, make_dir=True)
         if os.path.exists(storeddir):
             raise KeyError("This directory already exists in the store")
@@ -207,6 +210,20 @@ class FileStore(object):
             shutil.rmtree(storeddir)
             raise
         return dirhash
+
+    def add(self, newpath, metadata):
+        """Adds a file or directory with a dict of metadata.
+
+        This simply calls either add_file() or add_directory() with the given
+        arguments.
+        """
+        if not isinstance(newpath, basestring):
+            raise TypeError("newpath should be a string, not %s" %
+                            type(newpath))
+        if os.path.isdir(newpath):
+            return self.add_directory(newpath, metadata)
+        else:
+            return self.add_file(newpath, metadata)
 
     def remove(self, objecthash):
         """Removes a file or directory given its SHA1 hash.

@@ -124,18 +124,23 @@ class TestStore(unittest.TestCase):
                 ('file2.bin', {'a': 'aa', 'c': 12, 'd': 'common'}),
                  ('dir3', {'a': 'bb', 'c': 41}),
                  ('dir4', {'c': '12', 'd': 'common'}),
+                 ('file5.bin', {'e': 'aa', 'f': 41}),
             ]
 
         h = []
         meta = {}
         for f, m in files:
-            if f.startswith('dir'):
-                r = self.store.add_directory(self.t(f), m)
-            elif f != 'file2.bin':
+            if f == 'file1.bin':
                 r = self.store.add_file(self.t(f), m)
-            else:
+            elif f == 'file2.bin':
                 with open(self.t(f), 'rb') as fp:
                     r = self.store.add_file(fp, m)
+            elif f == 'dir3':
+                r = self.store.add(self.t(f), m)
+            elif f == 'dir4':
+                r = self.store.add_directory(self.t(f), m)
+            else:
+                r = self.store.add(self.t(f), m)
             h.append(r)
             m['hash'] = r
             meta[r] = m
@@ -164,6 +169,24 @@ class TestStore(unittest.TestCase):
         assert_many({'d': 'common'}, [h[3]])
         self.store.remove(h[3])
         assert_many({'d': 'common'}, [])
+
+    def test_invalid_add(self):
+        with self.assertRaises(ValueError):
+            self.store.add(self.t('file1.bin'), {'k': {'whatsthis': 'value'}})
+        with self.assertRaises(ValueError):
+            self.store.add(self.t('dir3'), {'k': {'whatsthis': 'value'}})
+        self.assertEqual(list(self.store.query({})), [])
+
+    def test_badpath(self):
+        with self.assertRaises(TypeError):
+            self.store.add_directory(2, {})
+        with self.assertRaises(TypeError):
+            self.store.add(2, {})
+        self.assertEqual(list(self.store.query({})), [])
+
+    def test_wrongpath(self):
+        with self.assertRaises(ValueError):
+            self.store.add_directory('/this/path/doesnt/exist', {})
 
     def test_open(self):
         h = self.store.add_file(self.t('file1.bin'), {'findme': 'here'})
