@@ -23,10 +23,10 @@ find the files matching a given conditions. Example::
    $ file_archive ../mystore add /tmp/simresults model=weather2 cluster=poly
    0f72c656ac0997fcab8f6590f71c57fc1a767508
    $ file_archive ../mystore query model=weather2
-   0f72c656ac0997fcab8f6590f71c57fc1a767508
+   a77a813e049b1f05afd614fe4b8e11e59fb65b99
            cluster: "poly-old"
            model: "weather2"
-   a77a813e049b1f05afd614fe4b8e11e59fb65b99
+   0f72c656ac0997fcab8f6590f71c57fc1a767508
            cluster: "poly"
            model: "weather2"
 
