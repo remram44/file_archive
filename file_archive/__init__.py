@@ -198,6 +198,8 @@ class FileStore(object):
             raise TypeError("newdir should be a string, not %s" % type(newdir))
         dirhash = hash_directory(newdir)
         storeddir = self.get_filename(dirhash, make_dir=True)
+        if os.path.exists(storeddir):
+            raise KeyError("This directory already exists in the store")
         copy_directory(newdir, storeddir)
         try:
             self.metadata.add(dirhash, metadata)

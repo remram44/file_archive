@@ -94,10 +94,15 @@ class TestStore(unittest.TestCase):
                 self.store.get(h1).metadata,
                 {'hash': h1, 'a': 'b'})
 
-    def test_put_twice(self):
+    def test_put_file_twice(self):
         self.assertIsNotNone(self.store.add_file(self.t('file1.bin'), {}))
         with self.assertRaises(KeyError):
             self.store.add_file(self.t('file1.bin'), {})
+
+    def test_put_dir_twice(self):
+        self.assertIsNotNone(self.store.add_directory(self.t('dir3'), {'a': 'b'}))
+        with self.assertRaises(KeyError):
+            self.store.add_directory(self.t('dir3'), {})
 
     def test_reqs(self):
         def assert_one(cond, expected):
