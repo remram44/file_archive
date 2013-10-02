@@ -45,7 +45,7 @@ def hash_directory(path, visited=None):
         raise ValueError("Can't hash directory structure: loop detected at "
                          "%s" % path)
     visited.add(os.path.realpath(path))
-    for f in os.listdir(path):
+    for f in sorted(os.listdir(path)):
         pf = os.path.join(path, f)
         if os.path.isdir(pf):
             if os.path.islink(pf):
