@@ -1,5 +1,6 @@
 import contextlib
 import os
+import platform
 import shutil
 import tempfile
 
@@ -8,7 +9,7 @@ try:
 except ImportError:
     import unittest
 
-from file_archive import FileStore
+from file_archive import FileStore, relativize_link
 from file_archive.errors import CreationError, InvalidStore
 
 
@@ -22,6 +23,52 @@ def temp_dir(make=True):
             yield os.path.join(path, 'internal')
     finally:
         shutil.rmtree(path)
+
+
+class TestInternals(unittest.TestCase):
+    """Tests internal functions.
+    """
+    @unittest.skipUnless(hasattr(os, 'symlink'), "Symlinks unavailable")
+    def test_relativize_link(self):
+        with temp_dir() as t:
+            d = os.path.join(t, 'inner')
+            os.mkdir(d)
+            i = os.path.join(d, 'dirI')
+            os.mkdir(i)
+            j = os.path.join(d, 'dirJ')
+            os.mkdir(j)
+            os.symlink(os.path.join(d, 'file'), os.path.join(i, 'link1'))
+            os.symlink('../file', os.path.join(i, 'link1r'))
+            os.symlink(os.path.join(j, 'file'), os.path.join(i, 'link2'))
+            os.symlink('../dirJ/file', os.path.join(i, 'link2r'))
+            os.symlink(os.path.join(j, 'file'), os.path.join(d, 'link3'))
+            os.symlink('dirJ/file', os.path.join(d, 'link3r'))
+            os.symlink(os.path.join(t, 'file'), os.path.join(i, 'link4'))
+            os.symlink('../../file', os.path.join(i, 'link4r'))
+            os.symlink(os.path.join(t, 'file'), os.path.join(d, 'link5'))
+            os.symlink('../file', os.path.join(d, 'link5r'))
+
+            def do_test(p, expected, rel=False):
+                r = relativize_link(p, d)
+                if r is None:
+                    self.assertIsNone(expected)
+                else:
+                    self.assertIsNotNone(expected)
+                    self.assertEqual(os.readlink(p), expected)
+                    self.assertEqual(r, expected)
+                if not rel:
+                    do_test(p + 'r', expected, True)
+
+            self.assertEqual(relativize_link(os.path.join(i, 'link1'), d),
+                             '../file')
+            self.assertEqual(relativize_link(os.path.join(i, 'link2'), d),
+                             '../dirJ/file')
+            self.assertEqual(relativize_link(os.path.join(d, 'link3'), d),
+                             'dirJ/file')
+            self.assertEqual(relativize_link(os.path.join(i, 'link4'), d),
+                             None)
+            self.assertEqual(relativize_link(os.path.join(d, 'link5'), d),
+                             None)
 
 
 class TestCreate(unittest.TestCase):
@@ -221,3 +268,22 @@ class TestStore(unittest.TestCase):
             self.store.remove(h)
         with self.assertRaises(KeyError):
             self.store.get(h)
+
+    @unittest.skipUnless(hasattr(os, 'symlink'), "Symlinks unavailable")
+    def test_symlinks(self):
+        with temp_dir() as d:
+            shutil.copyfile(self.t('file1.bin'), os.path.join(d, 'file'))
+            os.mkdir(os.path.join(d, 'dir'))
+            os.symlink(os.path.join(d, 'file'), os.path.join(d, 'dir', 'link'))
+            h = self.store.add_directory(d, {})
+            path = self.store.get_filename(h)
+            c = ('this is some\n'
+                 'random content\n'
+                 'note LF line endings\n')
+            with open(os.path.join(path, 'file'), 'rb') as fp:
+                self.assertEqual(fp.read(), c)
+            with open(os.path.join(path, 'dir', 'link'), 'rb') as fp:
+                self.assertEqual(fp.read(), c)
+            self.assertTrue(os.path.islink(os.path.join(path, 'dir', 'link')))
+            self.assertEqual(os.readlink(os.path.join(path, 'dir', 'link')),
+                             '../file')

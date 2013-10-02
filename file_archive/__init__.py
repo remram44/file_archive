@@ -36,7 +36,22 @@ def copy_file(fileobj, destination):
             raise
 
 
-def hash_directory(path, visited=None):
+def relativize_link(link, root):
+    """Tries to make the file a relative link.
+
+    If the target is not inside root, returns None.
+    root must be a realpath (os.path.realpath()).
+    """
+    target = os.path.join(os.path.dirname(link),  os.readlink(link))
+    target = os.path.realpath(target)
+    root = root + os.path.sep
+    if os.path.commonprefix([target, root]) == root:
+        return os.path.relpath(target, os.path.dirname(link))
+    else:
+        return None
+
+
+def hash_directory(path, root=None, visited=None):
     """Hashes a directory to a 40 hex character string.
     """
     h = hashlib.sha1()
@@ -46,15 +61,22 @@ def hash_directory(path, visited=None):
         raise ValueError("Can't hash directory structure: loop detected at "
                          "%s" % path)
     visited.add(os.path.realpath(path))
+    if root is None:
+        root = os.path.realpath(path)
     h.update('dir\n')
     for f in sorted(os.listdir(path)):
         pf = os.path.join(path, f)
+        if os.path.islink(pf):
+            link = relativize_link(pf, root)
+            if link is not None:
+                h.update('link %s %s\n' % (f, hashlib.sha1(link)))
+                continue
         if os.path.isdir(pf):
             if os.path.islink(pf):
                 warnings.warn("%s is a symbolic link, recursing on target "
                               "directory" % pf,
                               UsageWarning)
-            h.update('dir %s %s\n' % (f, hash_directory(pf, visited)))
+            h.update('dir %s %s\n' % (f, hash_directory(pf, root, visited)))
         else:
             if os.path.islink(pf):
                 warnings.warn("%s is a symbolic link, using target file "
@@ -65,12 +87,27 @@ def hash_directory(path, visited=None):
     return h.hexdigest()
 
 
-def copy_directory(sourcepath, destination):
+def copy_directory(sourcepath, destination, root=None):
     """Copies a directory recursively to a destination name.
     """
+    if root is None:
+        root = os.path.realpath(sourcepath)
     # We don't display a warning for links, hash_directory() does that
     try:
-        shutil.copytree(sourcepath, destination)
+        os.mkdir(destination)
+        for f in os.listdir(sourcepath):
+            pf = os.path.join(sourcepath, f)
+            df = os.path.join(destination, f)
+            if os.path.islink(pf):
+                link = relativize_link(pf, root)
+                if link is not None:
+                    os.symlink(link, df)
+                    continue
+            if os.path.isdir(pf):
+                copy_directory(pf, df, root)
+            else:
+                with open(pf, 'rb') as fd:
+                    copy_file(fd, df)
     except:
         shutil.rmtree(destination)
         raise
