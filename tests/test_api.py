@@ -84,12 +84,12 @@ class TestStore(unittest.TestCase):
 
     def test_putfile(self):
         h1 = self.store.add_file(self.t('file1.bin'), {'a': 'b'})
-        self.assertEqual(h1, '6edc650f52e26ce867b3765e0563dc3e445cdaa9')
+        self.assertEqual(h1, 'fce92fa2647153f7d696a3c1884d732290273102')
         self.assertTrue(os.path.isfile(os.path.join(
                 self.path,
                 'objects',
-                '6e',
-                'dc650f52e26ce867b3765e0563dc3e445cdaa9')))
+                'fc',
+                'e92fa2647153f7d696a3c1884d732290273102')))
         self.assertEqual(
                 self.store.get(h1).metadata,
                 {'hash': h1, 'a': 'b'})

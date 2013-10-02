@@ -11,9 +11,10 @@ CHUNKSIZE = 4096
 
 
 def hash_file(f):
-    """Hashes a file to its 40 hex character SHA1.
+    """Hashes a file to a 40 hex character SHA1.
     """
     h = hashlib.sha1()
+    h.update('file\n')
     chunk = f.read(CHUNKSIZE)
     while chunk:
         h.update(chunk)
@@ -45,6 +46,7 @@ def hash_directory(path, visited=None):
         raise ValueError("Can't hash directory structure: loop detected at "
                          "%s" % path)
     visited.add(os.path.realpath(path))
+    h.update('dir\n')
     for f in sorted(os.listdir(path)):
         pf = os.path.join(path, f)
         if os.path.isdir(pf):
