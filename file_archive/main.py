@@ -6,33 +6,48 @@ import warnings
 from file_archive import FileStore, CHUNKSIZE
 
 
-def parse_metadata(args, first_can_be_hash):
-    """Parses a list of key=value arguments.
+def parse_query_metadata(args):
+    """Parses a list of key=value arguments or a hash value.
 
-    If first_can_be_hash is True, it will accept a single hash instead. In this
-    case the return format changes, and (hash:str, metadata:dict) gets returned
-    instead of just metadata.
+    Returns (hash:str, metadata:dict)
     """
-    if len(args) == 1 and first_can_be_hash and '=' not in args[0]:
+    if len(args) == 1 and '=' not in args[0]:
         return args[0], None
     else:
         metadata = {}
         for a in args:
             k = a.split('=', 1)
             if len(k) != 2:
-                sys.stderr.write("Metadata should have format key=value or "
-                                 "key=type:value (eg. age=int:23)\n")
+                sys.stderr.write("Metadata should have format key=value, "
+                                 "key=type:value (eg. age=int:23) or"
+                                 "key=type:req (eg. age=int:>21\n")
                 sys.exit(1)
             k, v = k
             if ':' in v:
                 t, v = v.split(':', 1)
-                metadata[k] = {'type': t, 'value': v}
+                metadata[k] = {'type': t, 'equal': v}
             else:
                 metadata[k] = v
-        if first_can_be_hash:
-            return None, metadata
+        return None, metadata
+
+
+def parse_new_metadata(args):
+    """Parses a list of key=value or key=type:value arguments.
+    """
+    metadata = {}
+    for a in args:
+        k = a.split('=', 1)
+        if len(k) != 2:
+            sys.stderr.write("Metadata should have format key=value or "
+                             "key=type:value (eg. age=int:23)\n")
+            sys.exit(1)
+        k, v = k
+        if ':' in v:
+            t, v = v.split(':', 1)
+            metadata[k] = {'type': t, 'value': v}
         else:
-            return metadata
+            metadata[k] = v
+    return metadata
 
 
 def cmd_add(store, args):
@@ -47,7 +62,7 @@ def cmd_add(store, args):
     if not os.path.exists(filename):
         sys.stderr.write("Path does not exist: %s\n" % filename)
         sys.exit(1)
-    metadata = parse_metadata(args[1:], False)
+    metadata = parse_new_metadata(args[1:])
     if os.path.isdir(filename):
         h = store.add_directory(filename, metadata)
     else:
@@ -60,7 +75,10 @@ def cmd_query(store, args):
 
     query [key1=value1] [...]
     """
-    metadata = parse_metadata(args, False)
+    h, metadata = parse_query_metadata(args)
+    if h is not None:
+        sys.stderr.write("query doesn't take a hash but conditions\n")
+        sys.exit(1)
     entries = store.query(metadata)
     for entry in entries:
         sys.stdout.write("%s\n" % entry['hash'])
@@ -78,7 +96,7 @@ def cmd_print(store, args):
     print <filehash> [...]
     print [key1=value1] [...]
     """
-    h, metadata = parse_metadata(args, True)
+    h, metadata = parse_query_metadata(args)
     if h is None:
         entries = store.query(metadata)
         try:
@@ -117,7 +135,7 @@ def cmd_remove(store, args):
     remove <filehash>
     remove <key1=value1> [...]
     """
-    h, metadata = parse_metadata(args, True)
+    h, metadata = parse_query_metadata(args)
     if h:
         store.remove(h)
     else:
