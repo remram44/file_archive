@@ -28,7 +28,7 @@ def temp_dir(make=True):
 class TestInternals(unittest.TestCase):
     """Tests internal functions.
     """
-    @unittest.skipUnless(hasattr(os, 'symlink'), "Symlinks unavailable")
+    @unittest.skipIf(platform.system() == 'Windows', "Symlinks unavailable")
     def test_relativize_link(self):
         with temp_dir() as t:
             d = os.path.join(t, 'inner')
@@ -86,7 +86,7 @@ class TestCreate(unittest.TestCase):
     def test_create_nonempty(self):
         with temp_dir() as d:
             with open(os.path.join(d, 'somefile'), 'wb') as fp:
-                fp.write("I'm not empty\n")
+                fp.write(b"I'm not empty\n")
             with self.assertRaises(CreationError):
                 FileStore.create_store(d)
         with temp_dir() as d:
@@ -245,9 +245,9 @@ class TestStore(unittest.TestCase):
                         self.path,
                         'objects',
                         h[:2], h[2:])))
-        c = ('this is some\n'
-             'random content\n'
-             'note LF line endings\n')
+        c = (b'this is some\n'
+             b'random content\n'
+             b'note LF line endings\n')
         fp = entry.open()
         try:
             self.assertEqual(fp.read(), c)
@@ -269,7 +269,7 @@ class TestStore(unittest.TestCase):
         with self.assertRaises(KeyError):
             self.store.get(h)
 
-    @unittest.skipUnless(hasattr(os, 'symlink'), "Symlinks unavailable")
+    @unittest.skipIf(platform.system() == 'Windows', "Symlinks unavailable")
     def test_symlinks(self):
         with temp_dir() as d:
             shutil.copyfile(self.t('file1.bin'), os.path.join(d, 'file'))
@@ -277,9 +277,9 @@ class TestStore(unittest.TestCase):
             os.symlink(os.path.join(d, 'file'), os.path.join(d, 'dir', 'link'))
             h = self.store.add_directory(d, {})
             path = self.store.get_filename(h)
-            c = ('this is some\n'
-                 'random content\n'
-                 'note LF line endings\n')
+            c = (b'this is some\n'
+                 b'random content\n'
+                 b'note LF line endings\n')
             with open(os.path.join(path, 'file'), 'rb') as fp:
                 self.assertEqual(fp.read(), c)
             with open(os.path.join(path, 'dir', 'link'), 'rb') as fp:

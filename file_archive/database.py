@@ -1,5 +1,6 @@
 import sqlite3
 
+from .compat import basestring, baseint
 from .errors import Error, CreationError, InvalidStore
 
 
@@ -13,12 +14,12 @@ class MetadataStore(object):
             self.conn = sqlite3.connect(database)
             self.conn.row_factory = sqlite3.Row
             cur = self.conn.cursor()
-            tables = cur.execute(u'''
+            tables = cur.execute('''
                     SELECT name FROM sqlite_master WHERE type = 'table'
                     ''')
-            if set(r['name'] for r in tables.fetchall()) != set([u'metadata']):
+            if set(r['name'] for r in tables.fetchall()) != set(['metadata']):
                 raise InvalidStore("Database doesn't have required structure")
-        except sqlite3.Error, e:
+        except sqlite3.Error as e:
             raise InvalidStore("Cannot access database: %s: %s" % (
                     e.__class__.__name__, e.message))
 
@@ -26,23 +27,23 @@ class MetadataStore(object):
     def create_db(database):
         try:
             conn = sqlite3.connect(database)
-            query = u'''
+            query = '''
                     CREATE TABLE metadata(
                         hash VARCHAR(40) NOT NULL,
                         mkey VARCHAR(255) NULL
                     '''
             indexes = [
-                    u'CREATE INDEX hash_idx ON metadata(hash)',
-                    u'CREATE INDEX mkey_idx ON metadata(mkey)']
+                    'CREATE INDEX hash_idx ON metadata(hash)',
+                    'CREATE INDEX mkey_idx ON metadata(mkey)']
 
             for datatype, name in MetadataStore._TYPES:
-                query += u'''
+                query += '''
                         , mvalue_{name} {type} NULL
                         '''.format(name=name, type=datatype)
-                indexes.append(u'''
+                indexes.append('''
                         CREATE INDEX mvalue_{name} ON metadata(mvalue_{name})
                         '''.format(name=name))
-            query += u')'
+            query += ')'
 
             cur = conn.cursor()
             cur.execute(query)
@@ -51,7 +52,7 @@ class MetadataStore(object):
 
             conn.commit()
             conn.close()
-        except sqlite3.Error, e: # pragma: no cover
+        except sqlite3.Error as e: # pragma: no cover
             raise CreationError("Could not create database: %s: %s" % (
                     e.__class__.__name__, e.message))
 
@@ -66,7 +67,7 @@ class MetadataStore(object):
         """
         cur = self.conn.cursor()
         try:
-            cur.execute(u'''
+            cur.execute('''
                     SELECT hash FROM metadata
                     WHERE hash = :hash
                     LIMIT 1
@@ -75,15 +76,15 @@ class MetadataStore(object):
             if cur.fetchone() is not None:
                 raise KeyError("Already have metadata for hash")
             if not metadata:
-                cur.execute(u'''
+                cur.execute('''
                         INSERT INTO metadata(hash) VALUES(:hash)
                         ''',
                         {'hash': key})
             else:
-                for mkey, mvalue in metadata.iteritems():
+                for mkey, mvalue in metadata.items():
                     if isinstance(mvalue, basestring):
                         t = 'str'
-                    elif isinstance(mvalue, (int, long)):
+                    elif isinstance(mvalue, baseint):
                         t = 'int'
                     elif isinstance(mvalue, dict):
                         r = dict(mvalue)
@@ -101,7 +102,7 @@ class MetadataStore(object):
                                 "Metadata values should be dictionaries with "
                                 "the format:\n"
                                 "{'type': 'int/str/...', 'value': <value>}")
-                    cur.execute(u'''
+                    cur.execute('''
                             INSERT INTO metadata(hash, mkey, mvalue_{name})
                             VALUES(:hash, :key, :value)
                             '''.format(name=t, hash=mkey, value=mvalue),
@@ -118,7 +119,7 @@ class MetadataStore(object):
         """
         cur = self.conn.cursor()
         try:
-            cur.execute(u'''
+            cur.execute('''
                     DELETE FROM metadata WHERE hash = :hash
                     ''',
                     {'hash': key})
@@ -133,7 +134,7 @@ class MetadataStore(object):
         """Gets a row from the hash.
         """
         cur = self.conn.cursor()
-        rows = cur.execute(u'''
+        rows = cur.execute('''
                 SELECT * FROM metadata
                 WHERE hash = :hash
                 ''',
@@ -155,7 +156,7 @@ class MetadataStore(object):
         """
         rows = self.query_all(conditions, limit=1)
         try:
-            return rows.next()
+            return next(rows)
         except StopIteration:
             return None
 
@@ -166,13 +167,13 @@ class MetadataStore(object):
         """
         # Build the LIMIT part from the limit arg (number or None)
         if limit is not None:
-            limit = u'LIMIT %d' % limit
+            limit = 'LIMIT %d' % limit
         else:
-            limit = u''
+            limit = ''
 
         cur = self.conn.cursor()
         if not conditions:
-            hquery = u'''
+            hquery = '''
                     SELECT DISTINCT hash
                     FROM metadata
                     {limit}
@@ -181,25 +182,25 @@ class MetadataStore(object):
         else:
             conditems = self._make_conditions(conditions)
             i, key, cond0, params = next(conditems)
-            hquery = u'''
+            hquery = '''
                     SELECT i0.hash
                     FROM metadata i0
                     '''
             params['key0'] = key
             for i, key, cond, prms in conditems:
-                hquery += u'''
+                hquery += '''
                         INNER JOIN metadata i{i} ON i0.hash = i{i}.hash
                             AND i{i}.mkey = :key{i} AND {cond}
                         '''.format(i=i, cond=cond)
                 params['key%d' % (i)] = key
                 params.update(prms)
-            hquery += u'''
+            hquery += '''
                     WHERE i0.mkey = :key0 AND {cond}
                     {limit}
                     '''.format(cond=cond0, limit=limit)
 
         # And we put that in the query
-        rows = cur.execute(u'''
+        rows = cur.execute('''
                 SELECT *
                 FROM metadata
                 WHERE hash IN ({hashes})
@@ -210,11 +211,11 @@ class MetadataStore(object):
         return ResultBuilder(rows)
 
     def _make_conditions(self, conditions):
-        for i, (key, value) in enumerate(conditions.iteritems()):
+        for i, (key, value) in enumerate(conditions.items()):
             if isinstance(value, basestring):
                 t = 'str'
                 req = [('equal', value)]
-            elif isinstance(value, (int, long)):
+            elif isinstance(value, baseint):
                 t = 'int'
                 req = [('equal', value)]
             elif isinstance(value, dict):
@@ -224,7 +225,7 @@ class MetadataStore(object):
                 except KeyError:
                     raise TypeError("Query conditions should include key "
                                      "'type'")
-                req = req.iteritems()
+                req = iter(req.items())
                 if t not in ('str', 'int'):
                     raise TypeError("Unknown data type %r" % t)
             else:
@@ -304,3 +305,4 @@ class ResultBuilder(object):
         else:
             self.rows = None
         return dct
+    __next__ = next
