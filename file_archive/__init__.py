@@ -69,7 +69,7 @@ def hash_directory(path, root=None, visited=None):
         if os.path.islink(pf):
             link = relativize_link(pf, root)
             if link is not None:
-                h.update('link %s %s\n' % (f, hashlib.sha1(link)))
+                h.update('link %s %s\n' % (f, hashlib.sha1(link).hexdigest()))
                 continue
         if os.path.isdir(pf):
             if os.path.islink(pf):
