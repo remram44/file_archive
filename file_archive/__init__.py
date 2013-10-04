@@ -1,8 +1,8 @@
-import hashlib
 import os
 import shutil
 import warnings
 
+from .compat import string_types, sha1
 from .database import MetadataStore
 from .errors import CreationError, InvalidStore, UsageWarning
 
@@ -13,8 +13,8 @@ CHUNKSIZE = 4096
 def hash_file(f):
     """Hashes a file to a 40 hex character SHA1.
     """
-    h = hashlib.sha1()
-    h.update('file\n')
+    h = sha1()
+    h.update(b'file\n')
     chunk = f.read(CHUNKSIZE)
     while chunk:
         h.update(chunk)
@@ -54,7 +54,7 @@ def relativize_link(link, root):
 def hash_directory(path, root=None, visited=None):
     """Hashes a directory to a 40 hex character string.
     """
-    h = hashlib.sha1()
+    h = sha1()
     if visited is None:
         visited = set()
     if os.path.realpath(path) in visited:
@@ -63,13 +63,13 @@ def hash_directory(path, root=None, visited=None):
     visited.add(os.path.realpath(path))
     if root is None:
         root = os.path.realpath(path)
-    h.update('dir\n')
+    h.update(b'dir\n')
     for f in sorted(os.listdir(path)):
         pf = os.path.join(path, f)
         if os.path.islink(pf):
             link = relativize_link(pf, root)
             if link is not None:
-                h.update('link %s %s\n' % (f, hashlib.sha1(link).hexdigest()))
+                h.update('link %s %s\n' % (f, sha1(link).hexdigest()))
                 continue
         if os.path.isdir(pf):
             if os.path.islink(pf):
@@ -144,6 +144,7 @@ class EntryIterator(object):
 
     def next(self):
         return Entry(self.store, self.infos.next())
+    __next__ = next
 
 
 class FileStore(object):
@@ -170,7 +171,7 @@ class FileStore(object):
             if not exists:
                 os.mkdir(path)
             os.mkdir(os.path.join(path, 'objects'))
-        except OSError, e: # pragma: no cover
+        except OSError as e: # pragma: no cover
             raise CreationError("Could not create directories: %s: %s" % (
                     e.__class__.__name__, e.message))
         MetadataStore.create_db(os.path.join(path, 'database'))
@@ -190,7 +191,7 @@ class FileStore(object):
     def get_filename(self, filehash, make_dir=False):
         """Returns the file path for a given SHA1 hash.
         """
-        if not isinstance(filehash, basestring):
+        if not isinstance(filehash, string_types):
             raise TypeError("hash should be a string, not %s" % type(filehash))
         dirname = os.path.join(self.store, filehash[:2])
         if not os.path.isdir(dirname):
@@ -207,7 +208,7 @@ class FileStore(object):
         newfile.seek(0, os.SEEK_SET) as it will be read twice: once to compute
         its SHA1 hash, and a second time to write it to disk.
         """
-        if isinstance(newfile, basestring):
+        if isinstance(newfile, string_types):
             if os.path.islink(newfile):
                 warnings.warn("%s is a symbolic link, using target file "
                               "instead" % newfile,
@@ -235,7 +236,7 @@ class FileStore(object):
         The directory will be recursively copied to the store, and an entry
         will be added to the database.
         """
-        if not isinstance(newdir, basestring):
+        if not isinstance(newdir, string_types):
             raise TypeError("newdir should be a string, not %s" % type(newdir))
         try:
             dirhash = hash_directory(newdir)
@@ -260,7 +261,7 @@ class FileStore(object):
         This simply calls either add_file() or add_directory() with the given
         arguments.
         """
-        if not isinstance(newpath, basestring):
+        if not isinstance(newpath, string_types):
             raise TypeError("newpath should be a string, not %s" %
                             type(newpath))
         if os.path.isdir(newpath):

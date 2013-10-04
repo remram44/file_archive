@@ -1,0 +1,33 @@
+from abc import ABCMeta
+import hashlib
+
+
+try:
+    string_types = basestring
+except NameError:
+    string_types = str
+
+try:
+    long
+except NameError:
+    int_types = int
+else:
+    class int_types:
+        __metaclass__ = ABCMeta
+    int_types.register(int)
+    int_types.register(long)
+
+
+class sha1(object):
+    def __init__(self, arg=b''):
+        self._hash = hashlib.sha1()
+        if arg:
+            self.update(arg)
+
+    def update(self, arg):
+        if not isinstance(arg, bytes):
+            arg = arg.encode('ascii')
+        self._hash.update(arg)
+
+    def hexdigest(self):
+        return self._hash.hexdigest()
