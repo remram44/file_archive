@@ -65,10 +65,10 @@ def cmd_add(store, args):
         sys.exit(1)
     metadata = parse_new_metadata(args[1:])
     if os.path.isdir(filename):
-        h = store.add_directory(filename, metadata)
+        entry = store.add_directory(filename, metadata)
     else:
-        h = store.add_file(filename, metadata)
-    sys.stdout.write('%s\n' % h)
+        entry = store.add_file(filename, metadata)
+    sys.stdout.write('%s\n' % entry['hash'])
 
 
 def cmd_query(store, args):
