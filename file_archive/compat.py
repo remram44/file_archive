@@ -3,21 +3,19 @@ import hashlib
 
 
 try:
-    basestring
+    string_types = basestring
 except NameError:
-    basestring = str
-else:
-    basestring = basestring
+    string_types = str
 
 try:
     long
 except NameError:
-    baseint = int
+    int_types = int
 else:
-    class baseint:
+    class int_types:
         __metaclass__ = ABCMeta
-    baseint.register(int)
-    baseint.register(long)
+    int_types.register(int)
+    int_types.register(long)
 
 
 class sha1(object):

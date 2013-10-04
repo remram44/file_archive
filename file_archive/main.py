@@ -4,7 +4,7 @@ import sys
 import warnings
 
 from file_archive import FileStore, CHUNKSIZE
-from file_archive.compat import basestring
+from file_archive.compat import string_types
 
 
 def parse_query_metadata(args):
@@ -86,7 +86,7 @@ def cmd_query(store, args):
         for k, v in entry.metadata.items():
             if k == 'hash':
                 continue
-            if isinstance(v, basestring):
+            if isinstance(v, string_types):
                 v = '"%s"' % v.replace("\\", "\\\\").replace('"', '\\"')
             sys.stdout.write("\t%s: %s\n" % (k, v))
 

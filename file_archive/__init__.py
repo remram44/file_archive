@@ -2,7 +2,7 @@ import os
 import shutil
 import warnings
 
-from .compat import basestring, sha1
+from .compat import string_types, sha1
 from .database import MetadataStore
 from .errors import CreationError, InvalidStore, UsageWarning
 
@@ -191,7 +191,7 @@ class FileStore(object):
     def get_filename(self, filehash, make_dir=False):
         """Returns the file path for a given SHA1 hash.
         """
-        if not isinstance(filehash, basestring):
+        if not isinstance(filehash, string_types):
             raise TypeError("hash should be a string, not %s" % type(filehash))
         dirname = os.path.join(self.store, filehash[:2])
         if not os.path.isdir(dirname):
@@ -208,7 +208,7 @@ class FileStore(object):
         newfile.seek(0, os.SEEK_SET) as it will be read twice: once to compute
         its SHA1 hash, and a second time to write it to disk.
         """
-        if isinstance(newfile, basestring):
+        if isinstance(newfile, string_types):
             if os.path.islink(newfile):
                 warnings.warn("%s is a symbolic link, using target file "
                               "instead" % newfile,
@@ -236,7 +236,7 @@ class FileStore(object):
         The directory will be recursively copied to the store, and an entry
         will be added to the database.
         """
-        if not isinstance(newdir, basestring):
+        if not isinstance(newdir, string_types):
             raise TypeError("newdir should be a string, not %s" % type(newdir))
         try:
             dirhash = hash_directory(newdir)
@@ -261,7 +261,7 @@ class FileStore(object):
         This simply calls either add_file() or add_directory() with the given
         arguments.
         """
-        if not isinstance(newpath, basestring):
+        if not isinstance(newpath, string_types):
             raise TypeError("newpath should be a string, not %s" %
                             type(newpath))
         if os.path.isdir(newpath):

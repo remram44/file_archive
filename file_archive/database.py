@@ -1,6 +1,6 @@
 import sqlite3
 
-from .compat import basestring, baseint
+from .compat import string_types, int_types
 from .errors import Error, CreationError, InvalidStore
 
 
@@ -82,9 +82,9 @@ class MetadataStore(object):
                         {'hash': key})
             else:
                 for mkey, mvalue in metadata.items():
-                    if isinstance(mvalue, basestring):
+                    if isinstance(mvalue, string_types):
                         t = 'str'
-                    elif isinstance(mvalue, baseint):
+                    elif isinstance(mvalue, int_types):
                         t = 'int'
                     elif isinstance(mvalue, dict):
                         r = dict(mvalue)
@@ -212,10 +212,10 @@ class MetadataStore(object):
 
     def _make_conditions(self, conditions):
         for i, (key, value) in enumerate(conditions.items()):
-            if isinstance(value, basestring):
+            if isinstance(value, string_types):
                 t = 'str'
                 req = [('equal', value)]
-            elif isinstance(value, baseint):
+            elif isinstance(value, int_types):
                 t = 'int'
                 req = [('equal', value)]
             elif isinstance(value, dict):
