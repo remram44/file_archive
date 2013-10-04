@@ -225,7 +225,9 @@ class FileStore(object):
         except:
             os.remove(storedfile)
             raise
-        return filehash
+        infos = dict(metadata)
+        infos['hash'] = filehash
+        return Entry(self, infos)
 
     def add_directory(self, newdir, metadata):
         """Adds a directory given a path and dict of metadata.
@@ -248,7 +250,9 @@ class FileStore(object):
         except:
             shutil.rmtree(storeddir)
             raise
-        return dirhash
+        infos = dict(metadata)
+        infos['hash'] = dirhash
+        return Entry(self, infos)
 
     def add(self, newpath, metadata):
         """Adds a file or directory with a dict of metadata.

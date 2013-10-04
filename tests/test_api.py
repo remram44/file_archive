@@ -130,8 +130,9 @@ class TestStore(unittest.TestCase):
         self.assertEqual(list(self.store.query({})), [])
 
     def test_putfile(self):
-        h1 = self.store.add_file(self.t('file1.bin'), {'a': 'b'})
-        self.assertEqual(h1, 'fce92fa2647153f7d696a3c1884d732290273102')
+        entry1 = self.store.add_file(self.t('file1.bin'), {'a': 'b'})
+        h1 = 'fce92fa2647153f7d696a3c1884d732290273102'
+        self.assertEqual(entry1['hash'], h1)
         self.assertTrue(os.path.isfile(os.path.join(
                 self.path,
                 'objects',
@@ -188,9 +189,8 @@ class TestStore(unittest.TestCase):
                 r = self.store.add_directory(self.t(f), m)
             else:
                 r = self.store.add(self.t(f), m)
-            h.append(r)
-            m['hash'] = r
-            meta[r] = m
+            h.append(r['hash'])
+            meta[r['hash']] = r.metadata
 
         assert_one({'c': 41}, h[2])
         assert_many({'c': 41}, [h[2]])
@@ -236,7 +236,8 @@ class TestStore(unittest.TestCase):
             self.store.add_directory('/this/path/doesnt/exist', {})
 
     def test_open(self):
-        h = self.store.add_file(self.t('file1.bin'), {'findme': 'here'})
+        e = self.store.add_file(self.t('file1.bin'), {'findme': 'here'})
+        h = e['hash']
         entry = self.store.query_one({'findme': 'here'})
         self.assertEqual(entry.metadata, {'hash': h, 'findme': 'here'})
         self.assertEqual(
@@ -275,8 +276,8 @@ class TestStore(unittest.TestCase):
             shutil.copyfile(self.t('file1.bin'), os.path.join(d, 'file'))
             os.mkdir(os.path.join(d, 'dir'))
             os.symlink(os.path.join(d, 'file'), os.path.join(d, 'dir', 'link'))
-            h = self.store.add_directory(d, {})
-            path = self.store.get_filename(h)
+            entry = self.store.add_directory(d, {})
+            path = entry.filename
             c = ('this is some\n'
                  'random content\n'
                  'note LF line endings\n')
