@@ -26,6 +26,13 @@ def parse_query_metadata(args):
             k, v = k
             if ':' in v:
                 t, v = v.split(':', 1)
+                if t == 'int':
+                    v = int(v)
+                elif t != 'str':
+                    sys.stderr.write("Metadata has unknown type '%s'! Only "
+                                     "'str' and 'int' are supported.\n"
+                                     "If you meant a string with a ':', use "
+                                     "'str:mystring'" % t)
                 metadata[k] = {'type': t, 'equal': v}
             else:
                 metadata[k] = v
