@@ -5,6 +5,7 @@ import warnings
 
 from file_archive import FileStore, CHUNKSIZE
 from file_archive.compat import int_types, unicode_type, quote_str
+from file_archive.errors import UsageWarning
 
 
 def parse_query_metadata(args):
@@ -254,7 +255,7 @@ commands = {
 def main():
     logging.basicConfig()
     logging.captureWarnings(True)
-    warnings.simplefilter('once')
+    warnings.filterwarnings('always', category=UsageWarning)
 
     usage = (
             "usage: {bin} <store> create\n"
