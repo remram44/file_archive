@@ -140,15 +140,29 @@ def cmd_print(store, args):
 def cmd_remove(store, args):
     """Remove command.
 
-    remove <filehash>
-    remove <key1=value1> [...]
+    remove [-f] <filehash>
+    remove [-f] <key1=value1> [...]
     """
+    if args and args[0] == '-f':
+        del args[0]
+        force = True
+    else:
+        force = False
     h, metadata = parse_query_metadata(args)
     if h:
         store.remove(h)
     else:
-        for h in store.query(metadata):
-            store.remove(h)
+        entries = store.query(metadata)
+        if not args and not force:
+            nb = sum(1 for e in entries)
+            if nb:
+                sys.stderr.write("Error: not removing files unconditionally "
+                                 "unless -f is given\n"
+                                 "(command would have removed %d files)\n" % (
+                                 nb))
+                sys.exit(1)
+        for e in entries:
+            store.remove(e)
 
 
 def cmd_verify(store, args):
@@ -182,8 +196,8 @@ def main():
             "   or: {bin} <store> query [key1=value1] [...]\n"
             "   or: {bin} <store> print <filehash> [...]\n"
             "   or: {bin} <store> print [key1=value1] [...]\n"
-            "   or: {bin} <store> remove <filehash>\n"
-            "   or: {bin} <store> remove <key1=value1> [...]\n"
+            "   or: {bin} <store> remove [-f] <filehash>\n"
+            "   or: {bin} <store> remove [-f] <key1=value1> [...]\n"
             "   or: {bin} <store> verify\n".format(
             bin='file_archive'))
 
