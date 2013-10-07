@@ -11,3 +11,8 @@ hash, and a SQLite3 database for the metadata.
 
 Its purpose is to be used as a persistent file store for the VisTrails workflow
 and provenance management system: http://www.vistrails.org/
+
+# Warning
+
+Note that this project is still alpha and changing fast. The API, command-line
+interface and storage format are subject to change between each release.
