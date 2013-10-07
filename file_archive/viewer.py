@@ -16,6 +16,16 @@ except ImportError:
     sys.exit(3)
 
 
+try:
+    import tdparser
+except ImportError:
+    sys.stderr.write("tdparser is required by 'file_archive view'\n")
+    sys.exit(3)
+
+
+from .parser import parse_expression
+
+
 def _(s, disambiguation=None, **kwargs):
     if kwargs:
         s = s.format(**kwargs)
@@ -74,10 +84,10 @@ class StoreViewerWindow(QtGui.QMainWindow):
         error = None
 
         query = self._input.text()
-        query = query.split()
 
-        if len(query) == 1 and all(o not in query[0] for o in '=<>'):
-            h = query[0]
+        if len(query.split()) == 1 and all(o not in query.strip()
+                                           for o in '=<>'):
+            h = query.strip()
             try:
                 entries = [self.store.get(h)]
             except KeyError:
@@ -85,9 +95,11 @@ class StoreViewerWindow(QtGui.QMainWindow):
 
         else:
             try:
-                entries = self._search_conditions(query)
-            except SearchError, e:
-                error = e.message
+                conditions = parse_expression(query)
+            except ValueError as e:
+                error = e.args[0]
+            else:
+                entries = self.store.query(conditions)
 
         self._result_tree.clear()
 
@@ -97,9 +109,6 @@ class StoreViewerWindow(QtGui.QMainWindow):
             self._result_tree.addTopLevelItem(w)
         else:
             pass # TODO : display results
-
-    def _search_condition(self, query):
-        pass # TODO : search from a string
 
 
 def run_viewer(store):
