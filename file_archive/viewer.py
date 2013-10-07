@@ -83,32 +83,47 @@ class StoreViewerWindow(QtGui.QMainWindow):
 
         searchbar = QtGui.QHBoxLayout()
 
+        # Input line for the query
         self._input = QtGui.QLineEdit()
         self._input.setPlaceholderText(_(u"Enter query here"))
         self._input.returnPressed.connect(self._search)
         searchbar.addWidget(self._input)
 
+        # Search button
         searchbutton = QtGui.QPushButton(_(u"Search"))
         searchbutton.clicked.connect(self._search)
         searchbar.addWidget(searchbutton)
 
         results = QtGui.QHBoxLayout()
 
+        # Result view, as a tree with metadata
         self._result_tree = QtGui.QTreeWidget()
         self._result_tree.setColumnCount(3)
         self._result_tree.setHeaderLabels([_(u"Key"), _(u"Value"), _(u"Type")])
         self._result_tree.itemSelectionChanged.connect(self._selection_changed)
         results.addWidget(self._result_tree)
 
+        # Buttons, enabled/disabled when the selection changes
         buttons = QtGui.QVBoxLayout()
         self._buttons = []
+
+        # Open button; uses the system to choose the program to open with
+        # (on Windows, might ask you what to use every time because of filename
+        # scheme)
         open_button = QtGui.QPushButton(_(u"Open"))
         if openfile is not None:
             open_button.clicked.connect(self._openfile)
-            self._buttons.append(open_button)
+            self._buttons.append(('single', open_button))
         else:
             open_button.setEnabled(False)
         buttons.addWidget(open_button)
+
+        # Delete button, removes what's selected (with confirmation)
+        remove_button = QtGui.QPushButton(_(u"Delete"))
+        remove_button.clicked.connect(self._delete)
+        self._buttons.append(('multi', remove_button))
+        buttons.addWidget(remove_button)
+
         self._selection_changed()
         results.addLayout(buttons)
 
@@ -159,15 +174,40 @@ class StoreViewerWindow(QtGui.QMainWindow):
 
     def _selection_changed(self):
         items = self._result_tree.selectedItems()
-        for button in self._buttons:
-            button.setEnabled(
-                    len(items) == 1 and
-                    isinstance(items[0], FileItem))
+        for t, button in self._buttons:
+            if t == 'single':
+                button.setEnabled(
+                        len(items) == 1 and
+                        isinstance(items[0], FileItem))
+            else:
+                button.setEnabled(all(isinstance(i, FileItem) for i in items))
 
     def _openfile(self):
         item = self._result_tree.currentItem()
         if item is not None:
             openfile(self.store.get_filename(item.hash))
+
+    def _delete(self):
+        items = self._result_tree.selectedItems()
+        if not items:
+            return
+        confirm = QtGui.QMessageBox.question(
+                self,
+                _(u"Are you sure?"),
+                _(u"You are about to delete {num} entries from the store. "
+                  "Please confirm.", num=len(items)),
+                QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel,
+                QtGui.QMessageBox.Cancel)
+        if confirm == QtGui.QMessageBox.Ok:
+            hashes = set([i.hash for i in items])
+            i = 0
+            while i < self._result_tree.topLevelItemCount():
+                h = self._result_tree.topLevelItem(i).hash
+                if h in hashes:
+                    self.store.remove(h)
+                    self._result_tree.takeTopLevelItem(i)
+                else:
+                    i += 1
 
 
 def run_viewer(store):
