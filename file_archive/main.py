@@ -4,7 +4,7 @@ import sys
 import warnings
 
 from file_archive import FileStore, CHUNKSIZE
-from file_archive.compat import string_types, int_types
+from file_archive.compat import int_types, unicode_type, quote_str
 
 
 def parse_query_metadata(args):
@@ -81,21 +81,62 @@ def cmd_add(store, args):
 def cmd_query(store, args):
     """Query command.
 
-    query [key1=value1] [...]
+    query [-d] [-t] [key1=value1] [...]
     """
+    pydict = False
+    types = False
+    while args and args[0][0] == '-':
+        if args[0] == '-d':
+            pydict = True
+        elif args[0] == '-t':
+            types = True
+        elif args[0] == '--':
+            del args[0]
+            break
+        else:
+            sys.stderr.write("Unknown option: %s\n", args[0])
+            sys.exit(1)
+        del args[0]
     h, metadata = parse_query_metadata(args)
     if h is not None:
         sys.stderr.write("query doesn't take a hash but conditions\n")
         sys.exit(1)
     entries = store.query(metadata)
-    for entry in entries:
-        sys.stdout.write("%s\n" % entry['hash'])
-        for k, v in entry.metadata.items():
-            if k == 'hash':
-                continue
-            if isinstance(v, string_types):
-                v = '"%s"' % v.replace("\\", "\\\\").replace('"', '\\"')
-            sys.stdout.write("\t%s: %s\n" % (k, v))
+    if not pydict:
+        for entry in entries:
+            sys.stdout.write("%s\n" % entry['hash'])
+            for k, v in entry.metadata.items():
+                if k == 'hash':
+                    continue
+                if types:
+                    if isinstance(v, int_types):
+                        v = 'int:%d' % v
+                    else: # isinstance(v, string_types):
+                        v = 'str:%s' % v
+                sys.stdout.write("\t%s\t%s\n" % (k, v))
+    else:
+        sys.stdout.write('{\n')
+        for entry in entries:
+            sys.stdout.write("    '%s': {\n" % entry['hash'])
+            for k, v in entry.metadata.items():
+                if k == 'hash':
+                    continue
+                if types:
+                    if isinstance(v, int_types):
+                        v = "{'type': 'int', 'value': %d}" % v
+                    else: # isinstance(v, string_types)
+                        assert isinstance(v, unicode_type)
+                        v = "{'type': 'str', 'value': u%s}" % quote_str(v)
+                else:
+                    if isinstance(v, int_types):
+                        v = '%d' % v
+                    else: # isinstance(v, string_types)
+                        assert isinstance(v, unicode_type)
+                        v = "u%s" % quote_str(v)
+                k = quote_str(k)
+                sys.stdout.write("        u'%s': %s,\n" % (k, v))
+            sys.stdout.write('    },\n')
+        sys.stdout.write('}\n')
 
 
 def cmd_print(store, args):
@@ -143,10 +184,10 @@ def cmd_print(store, args):
             if k == 'hash':
                 continue
             if types:
-                if isinstance(v, string_types):
-                    v = 'str:%s' % v
-                elif isinstance(v, int_types):
+                if isinstance(v, int_types):
                     v = 'int:%d' % v
+                else: # isinstance(v, string_types):
+                    v = 'str:%s' % v
             sys.stdout.write("%s\t%s\n" % (k, v))
     else:
         if os.path.isdir(entry.filename):
@@ -218,7 +259,7 @@ def main():
     usage = (
             "usage: {bin} <store> create\n"
             "   or: {bin} <store> add <filename> [key1=value1] [...]\n"
-            "   or: {bin} <store> query [key1=value1] [...]\n"
+            "   or: {bin} <store> query [-d] [-t] [key1=value1] [...]\n"
             "   or: {bin} <store> print [-m] [-t] <filehash> [...]\n"
             "   or: {bin} <store> print [-m] [-t] [key1=value1] [...]\n"
             "   or: {bin} <store> remove [-f] <filehash>\n"

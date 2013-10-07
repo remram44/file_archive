@@ -31,3 +31,13 @@ class sha1(object):
 
     def hexdigest(self):
         return self._hash.hexdigest()
+
+
+if bytes == str:
+    unicode_type = unicode
+else:
+    unicode_type = str
+
+
+def quote_str(s):
+    return "'%s'" % s.replace("\\", "\\\\").replace('"', '\\"')
