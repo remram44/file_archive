@@ -1,5 +1,7 @@
 file_archive: A file store with searchable metadata
 
+[![Build Status](https://travis-ci.org/remram44/file_archive.png?branch=master)](https://travis-ci.org/remram44/file_archive)
+
 # Introduction
 
 This is a file archiving system. You submit it files with a set of metadata, as
