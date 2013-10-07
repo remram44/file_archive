@@ -4,7 +4,7 @@ import sys
 import warnings
 
 from file_archive import FileStore, CHUNKSIZE
-from file_archive.compat import string_types
+from file_archive.compat import string_types, int_types
 
 
 def parse_query_metadata(args):
@@ -101,9 +101,23 @@ def cmd_query(store, args):
 def cmd_print(store, args):
     """Print command.
 
-    print <filehash> [...]
-    print [key1=value1] [...]
+    print [-m] [-t] <filehash> [...]
+    print [-m] [-t] [key1=value1] [...]
     """
+    meta = False
+    types = False
+    while args and args[0][0] == '-':
+        if args[0] == '-m':
+            meta = True
+        elif args[0] == '-t':
+            types = True
+        elif args[0] == '--':
+            del args[0]
+            break
+        else:
+            sys.stderr.write("Unknown option: %s\n", args[0])
+            sys.exit(1)
+        del args[0]
     h, metadata = parse_query_metadata(args)
     if h is not None:
         try:
@@ -124,17 +138,28 @@ def cmd_print(store, args):
             pass
         else:
             sys.stderr.write("Warning: more matching files exist\n")
-    if os.path.isdir(entry.filename):
-        sys.stderr.write("Error: match found but is a directory\n")
-        sys.exit(2)
-    fp = entry.open()
-    try:
-        chunk = fp.read(CHUNKSIZE)
-        while chunk:
-            sys.stdout.write(chunk)
+    if meta:
+        for k, v in entry.metadata.items():
+            if k == 'hash':
+                continue
+            if types:
+                if isinstance(v, string_types):
+                    v = 'str:%s' % v
+                elif isinstance(v, int_types):
+                    v = 'int:%d' % v
+            sys.stdout.write("%s\t%s\n" % (k, v))
+    else:
+        if os.path.isdir(entry.filename):
+            sys.stderr.write("Error: match found but is a directory\n")
+            sys.exit(2)
+        fp = entry.open()
+        try:
             chunk = fp.read(CHUNKSIZE)
-    finally:
-        fp.close()
+            while chunk:
+                sys.stdout.write(chunk)
+                chunk = fp.read(CHUNKSIZE)
+        finally:
+            fp.close()
 
 
 def cmd_remove(store, args):
@@ -194,8 +219,8 @@ def main():
             "usage: {bin} <store> create\n"
             "   or: {bin} <store> add <filename> [key1=value1] [...]\n"
             "   or: {bin} <store> query [key1=value1] [...]\n"
-            "   or: {bin} <store> print <filehash> [...]\n"
-            "   or: {bin} <store> print [key1=value1] [...]\n"
+            "   or: {bin} <store> print [-m] [-t] <filehash> [...]\n"
+            "   or: {bin} <store> print [-m] [-t] [key1=value1] [...]\n"
             "   or: {bin} <store> remove [-f] <filehash>\n"
             "   or: {bin} <store> remove [-f] <key1=value1> [...]\n"
             "   or: {bin} <store> verify\n".format(
