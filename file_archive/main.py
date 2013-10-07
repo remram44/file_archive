@@ -105,7 +105,13 @@ def cmd_print(store, args):
     print [key1=value1] [...]
     """
     h, metadata = parse_query_metadata(args)
-    if h is None:
+    if h is not None:
+        try:
+            entry = store.get(h)
+        except:
+            sys.stderr.write("Hash not found\n")
+            sys.exit(2)
+    else:
         entries = store.query(metadata)
         try:
             entry = next(entries)
@@ -118,12 +124,6 @@ def cmd_print(store, args):
             pass
         else:
             sys.stderr.write("Warning: more matching files exist\n")
-    else:
-        try:
-            entry = store.get(h)
-        except:
-            sys.stderr.write("Hash not found\n")
-            sys.exit(2)
     if os.path.isdir(entry.filename):
         sys.stderr.write("Error: match found but is a directory\n")
         sys.exit(2)
@@ -149,7 +149,7 @@ def cmd_remove(store, args):
     else:
         force = False
     h, metadata = parse_query_metadata(args)
-    if h:
+    if h is not None:
         store.remove(h)
     else:
         entries = store.query(metadata)
