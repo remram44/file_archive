@@ -23,6 +23,7 @@ except ImportError:
     sys.exit(3)
 
 
+from .compat import int_types
 from .parser import parse_expression
 
 
@@ -61,6 +62,8 @@ class StoreViewerWindow(QtGui.QMainWindow):
         results = QtGui.QHBoxLayout()
 
         self._result_tree = QtGui.QTreeWidget()
+        self._result_tree.setColumnCount(3)
+        self._result_tree.setHeaderLabels([_(u"Key"), _(u"Value"), _(u"Type")])
         results.addWidget(self._result_tree)
 
         buttons = QtGui.QVBoxLayout()
@@ -108,7 +111,20 @@ class StoreViewerWindow(QtGui.QMainWindow):
             w.setForeground(0, QtGui.QColor(255, 0, 0))
             self._result_tree.addTopLevelItem(w)
         else:
-            pass # TODO : display results
+            for entry in entries:
+                file_item = QtGui.QTreeWidgetItem([entry['hash']])
+                self._result_tree.addTopLevelItem(file_item)
+                for k, v in entry.metadata.items():
+                    if k == 'hash':
+                        continue
+                    if isinstance(v, int_types):
+                        t = 'int'
+                        v = '%d' % v
+                    else: # isinstance(v, string_types):
+                        t = 'str'
+                    i = QtGui.QTreeWidgetItem([k, v, t])
+                    file_item.addChild(i)
+            self._result_tree.expandAll()
 
 
 def run_viewer(store):
