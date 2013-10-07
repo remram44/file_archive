@@ -1,3 +1,5 @@
+import platform
+import subprocess
 import sys
 
 try:
@@ -27,6 +29,20 @@ from .compat import int_types
 from .parser import parse_expression
 
 
+system = platform.system().lower()
+if system == 'windows':
+    def openfile(filename):
+        subprocess.call(['cmd', '/c', 'start', filename])
+elif system == 'darwin':
+    def openfile(filename):
+        subprocess.call(['open', filename])
+elif system.startswith('linux'):
+    def openfile(filename):
+        subprocess.call(['xdg-open', filename])
+else:
+    openfile = None
+
+
 def _(s, disambiguation=None, **kwargs):
     if kwargs:
         s = s.format(**kwargs)
@@ -40,6 +56,23 @@ def _(s, disambiguation=None, **kwargs):
 class SearchError(Exception):
     """Error while querying the file store.
     """
+
+
+class FileItem(QtGui.QTreeWidgetItem):
+    def __init__(self, filehash):
+        QtGui.QTreeWidgetItem.__init__(self, [filehash])
+        self.hash = filehash
+
+
+class MetadataItem(FileItem):
+    def __init__(self, filehash, key, value):
+        if isinstance(value, int_types):
+            t = 'int'
+            value = '%d' % value
+        else: # isinstance(v, string_types):
+            t = 'str'
+        QtGui.QTreeWidgetItem.__init__(self, [key, value, t])
+        self.hash = filehash
 
 
 class StoreViewerWindow(QtGui.QMainWindow):
@@ -64,15 +97,19 @@ class StoreViewerWindow(QtGui.QMainWindow):
         self._result_tree = QtGui.QTreeWidget()
         self._result_tree.setColumnCount(3)
         self._result_tree.setHeaderLabels([_(u"Key"), _(u"Value"), _(u"Type")])
+        self._result_tree.itemSelectionChanged.connect(self._selection_changed)
         results.addWidget(self._result_tree)
 
         buttons = QtGui.QVBoxLayout()
-        but1 = QtGui.QPushButton(_(u"Buttons"))
-        but1.setEnabled(False)
-        buttons.addWidget(but1)
-        but2 = QtGui.QPushButton(_(u"go here"))
-        buttons.addWidget(but2)
-        but2.setEnabled(False)
+        self._buttons = []
+        open_button = QtGui.QPushButton(_(u"Open"))
+        if openfile is not None:
+            open_button.clicked.connect(self._openfile)
+            self._buttons.append(open_button)
+        else:
+            open_button.setEnabled(False)
+        buttons.addWidget(open_button)
+        self._selection_changed()
         results.addLayout(buttons)
 
         layout = QtGui.QVBoxLayout()
@@ -112,19 +149,25 @@ class StoreViewerWindow(QtGui.QMainWindow):
             self._result_tree.addTopLevelItem(w)
         else:
             for entry in entries:
-                file_item = QtGui.QTreeWidgetItem([entry['hash']])
+                file_item = FileItem(entry['hash'])
                 self._result_tree.addTopLevelItem(file_item)
                 for k, v in entry.metadata.items():
                     if k == 'hash':
                         continue
-                    if isinstance(v, int_types):
-                        t = 'int'
-                        v = '%d' % v
-                    else: # isinstance(v, string_types):
-                        t = 'str'
-                    i = QtGui.QTreeWidgetItem([k, v, t])
-                    file_item.addChild(i)
+                    file_item.addChild(MetadataItem(entry['hash'], k, v))
             self._result_tree.expandAll()
+
+    def _selection_changed(self):
+        items = self._result_tree.selectedItems()
+        for button in self._buttons:
+            button.setEnabled(
+                    len(items) == 1 and
+                    isinstance(items[0], FileItem))
+
+    def _openfile(self):
+        item = self._result_tree.currentItem()
+        if item is not None:
+            openfile(self.store.get_filename(item.hash))
 
 
 def run_viewer(store):
