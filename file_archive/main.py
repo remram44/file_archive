@@ -1,11 +1,13 @@
 import logging
 import os
 import sys
+import tdparser
 import warnings
 
 from file_archive import FileStore, CHUNKSIZE
 from file_archive.compat import int_types, unicode_type, quote_str
 from file_archive.errors import UsageWarning
+from file_archive.parser import parse_expressions
 
 
 def parse_query_metadata(args):
@@ -13,31 +15,14 @@ def parse_query_metadata(args):
 
     Returns (hash:str, metadata:dict)
     """
-    if len(args) == 1 and '=' not in args[0]:
+    if len(args) == 1 and all(o not in args[0] for o in '=<>'):
         return args[0], None
     else:
-        metadata = {}
-        for a in args:
-            k = a.split('=', 1)
-            if len(k) != 2:
-                sys.stderr.write("Metadata should have format key=value, "
-                                 "key=type:value (eg. age=int:23) or"
-                                 "key=type:req (eg. age=int:>21\n")
-                sys.exit(1)
-            k, v = k
-            if ':' in v:
-                t, v = v.split(':', 1)
-                if t == 'int':
-                    v = int(v)
-                elif t != 'str':
-                    sys.stderr.write("Metadata has unknown type '%s'! Only "
-                                     "'str' and 'int' are supported.\n"
-                                     "If you meant a string with a ':', use "
-                                     "'str:mystring'" % t)
-                metadata[k] = {'type': t, 'equal': v}
-            else:
-                metadata[k] = v
-        return None, metadata
+        try:
+            return None, parse_expressions(args)
+        except tdparser.Error as e:
+            sys.stderr.write("Error parsing query: %s\n" % e.args[0])
+            sys.exit(1)
 
 
 def parse_new_metadata(args):
