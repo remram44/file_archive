@@ -166,6 +166,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
             for entry in entries:
                 file_item = FileItem(entry['hash'])
                 self._result_tree.addTopLevelItem(file_item)
+                self._result_tree.setFirstItemColumnSpanned(file_item, True)
                 for k, v in entry.metadata.items():
                     if k == 'hash':
                         continue
@@ -180,7 +181,8 @@ class StoreViewerWindow(QtGui.QMainWindow):
                         len(items) == 1 and
                         isinstance(items[0], FileItem))
             else:
-                button.setEnabled(all(isinstance(i, FileItem) for i in items))
+                button.setEnabled(bool(items) and
+                                  all(isinstance(i, FileItem) for i in items))
 
     def _openfile(self):
         item = self._result_tree.currentItem()
