@@ -61,6 +61,22 @@ class Operator(Token):
 lexer.register_tokens(Key, Number, String, Operator)
 
 
+def _update_conditions(conditions, expr):
+    key, cond = expr
+    prec = conditions.get(key)
+    if prec is not None:
+        if prec['type'] != cond['type']:
+            raise ParserError("Differing types for conditions on key %s: "
+                              "%s, %s" % (key, prec['type'], cond['type']))
+        for k in cond.keys():
+            if k != 'type' and k in prec:
+                raise ParserError("Multiple conditions %s on key %s" % (
+                                  k, key))
+        prec.update(cond)
+    else:
+        conditions[key] = cond
+
+
 def parse_expression(expression):
     tokens = lexer.lex(expression)
     parser = Parser(tokens)
@@ -69,17 +85,15 @@ def parse_expression(expression):
         expr = parser.expression()
         if isinstance(expr, Token):
             raise ParserError("Found unexpected token %s in query" % expr)
-        key, cond = expr
-        prec = conditions.get(key)
-        if prec is not None:
-            if prec['type'] != cond['type']:
-                raise ParserError("Differing types for conditions on key %s: "
-                                 "%s, %s" % (key, prec['type'], cond['type']))
-            for k in cond.keys():
-                if k != 'type' and k in prec:
-                    raise ParserError("Multiple conditions %s on key %s" % (
-                                     k, key))
-            prec.update(cond) 
-        else:
-            conditions[key] = cond
+        _update_conditions(conditions, expr)
+    return conditions
+
+
+def parse_expressions(expression_list):
+    conditions = {}
+    for expression in expression_list:
+        expr = lexer.parse(expression)
+        if isinstance(expr, Token):
+            raise ParserError("Found unexpected token %s in query" % expr)
+        _update_conditions(conditions, expr)
     return conditions

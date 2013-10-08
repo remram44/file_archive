@@ -4,7 +4,7 @@ try:
 except ImportError:
     import unittest
 
-from file_archive.parser import parse_expression
+from file_archive.parser import parse_expression, parse_expressions
 
 
 class TestParser(unittest.TestCase):
@@ -45,9 +45,25 @@ class TestParser(unittest.TestCase):
                          {'key1': {'type': 'int', 'equal': -12},
                           'key2': {'type': 'str', 'equal': '4 2'},
                           'key3': {'type': 'int', 'gt': 41}})
-        self.assertEqual(parse_expression('key1>2 key1<4'),
+        self.assertEqual(parse_expression('key1>2  key1<4 '),
                          {'key1': {'type': 'int', 'gt': 2, 'lt': 4}})
         with self.assertRaises(tdparser.ParserError):
             parse_expression('key1="str" key1<2')
         with self.assertRaises(tdparser.ParserError):
             parse_expression('key1="str" key1="otherstr"')
+
+    def test_multi_splitted(self):
+        self.assertEqual(parse_expressions(['key1=-12', 'key2 = "4 2"', '41< key3']),
+                         {'key1': {'type': 'int', 'equal': -12},
+                          'key2': {'type': 'str', 'equal': '4 2'},
+                          'key3': {'type': 'int', 'gt': 41}})
+        self.assertEqual(parse_expressions(['key1>2 ', ' key1<4 ']),
+                         {'key1': {'type': 'int', 'gt': 2, 'lt': 4}})
+        with self.assertRaises(tdparser.ParserError):
+            parse_expressions(['key1="str"', 'key1<2'])
+        with self.assertRaises(tdparser.ParserError):
+            parse_expressions(['key1="str"', 'key1="otherstr"'])
+        with self.assertRaises(tdparser.ParserError):
+            parse_expressions(['key1="str" key1<2'])
+        with self.assertRaises(tdparser.ParserError):
+            parse_expressions(['"value"'])
