@@ -41,16 +41,20 @@ class Operator(Token):
 
     def led(self, left, context):
         right = context.expression(self.lbp)
+        inverted = False
         if not isinstance(left, Key) and isinstance(right, Key):
             left, right = right, left
+            inverted = True
         elif not isinstance(left, Key):
             raise ParserError("Condition does not involve a key")
+        elif isinstance(right, Key):
+            raise ParserError("Condition involves two keys")
         if self.text == '=':
             cond = 'equal'
         elif self.text == '<':
-            cond = 'lt'
-        elif self.text == '>':
-            cond = 'gt'
+            cond = 'gt' if inverted else 'lt'
+        elif self.text == '>': # pragma: no branch
+            cond = 'lt' if inverted else 'gt'
         return left.text, {'type': right.type, cond: right.value}
 
 
@@ -64,16 +68,16 @@ def parse_expression(expression):
     while not isinstance(parser.current_token, EndToken):
         expr = parser.expression()
         if isinstance(expr, Token):
-            raise ValueError("Found unexpected token %s in query" % expr)
+            raise ParserError("Found unexpected token %s in query" % expr)
         key, cond = expr
         prec = conditions.get(key)
         if prec is not None:
             if prec['type'] != cond['type']:
-                raise ValueError("Differing types for conditions on key %s: "
+                raise ParserError("Differing types for conditions on key %s: "
                                  "%s, %s" % (key, prec['type'], cond['type']))
             for k in cond.keys():
                 if k != 'type' and k in prec:
-                    raise ValueError("Multiple conditions %s on key %s" % (
+                    raise ParserError("Multiple conditions %s on key %s" % (
                                      k, key))
             prec.update(cond) 
         else:
