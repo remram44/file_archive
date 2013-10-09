@@ -28,13 +28,21 @@ def parse_query_metadata(args):
             if ':' in v:
                 t, v = v.split(':', 1)
                 if t == 'int':
+                    if v[0] == '>':
+                        req, v = 'gt', v[1:]
+                    elif v[0] == '<':
+                        req, v = 'lt', v[1:]
+                    else:
+                        req = 'equal'
                     v = int(v)
-                elif t != 'str':
+                elif t == 'str':
+                    req = 'equal'
+                else:
                     sys.stderr.write("Metadata has unknown type '%s'! Only "
                                      "'str' and 'int' are supported.\n"
                                      "If you meant a string with a ':', use "
                                      "'str:mystring'" % t)
-                metadata[k] = {'type': t, 'equal': v}
+                metadata[k] = {'type': t, req: v}
             else:
                 metadata[k] = v
         return None, metadata
