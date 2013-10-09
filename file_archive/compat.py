@@ -41,3 +41,15 @@ else:
 
 def quote_str(s):
     return "'%s'" % s.replace("\\", "\\\\").replace('"', '\\"')
+
+
+try:
+    # CPython 2
+    from cStringIO import StringIO
+except ImportError:
+    try:
+        # Python 2
+        from StringIO import StringIO
+    except ImportError:
+        # Python 3
+        from io import StringIO

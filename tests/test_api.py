@@ -1,4 +1,3 @@
-import contextlib
 import os
 import platform
 import shutil
@@ -12,17 +11,7 @@ except ImportError:
 from file_archive import FileStore, relativize_link
 from file_archive.errors import CreationError, InvalidStore
 
-
-@contextlib.contextmanager
-def temp_dir(make=True):
-    path = tempfile.mkdtemp(prefix='test_file_archive_')
-    try:
-        if make:
-            yield path
-        else:
-            yield os.path.join(path, 'internal')
-    finally:
-        shutil.rmtree(path)
+from .common import temp_dir
 
 
 class TestInternals(unittest.TestCase):

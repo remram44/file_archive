@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 import warnings
@@ -72,7 +71,7 @@ def cmd_add(store, args):
 
     add <filename> [key1=value1] [...]
     """
-    if len(sys.argv) < 4:
+    if not args:
         sys.stderr.write("Missing filename\n")
         sys.exit(1)
     filename = args[0]
@@ -260,9 +259,7 @@ commands = {
     }
 
 
-def main():
-    logging.basicConfig()
-    logging.captureWarnings(True)
+def main(args):
     warnings.filterwarnings('always', category=UsageWarning)
 
     usage = (
@@ -276,18 +273,26 @@ def main():
             "   or: {bin} <store> verify\n".format(
             bin='file_archive'))
 
-    if len(sys.argv) < 3:
+    if len(args) < 2:
         sys.stderr.write(usage)
         sys.exit(1)
 
-    store = sys.argv[1]
-    command = sys.argv[2]
+    store = args[0]
+    command = args[1]
 
     if command == 'create':
-        FileStore.create_store(store)
+        try:
+            FileStore.create_store(store)
+        except Exception as e:
+            sys.stderr.write("Can't create store: %s\n" % e.args[0])
+            sys.exit(3)
         sys.exit(0)
 
-    store = FileStore(store)
+    try:
+        store = FileStore(store)
+    except Exception as e:
+        sys.stderr.write("Invalid store: %s\n" % e.args[0])
+        sys.exit(3)
 
     try:
         try:
@@ -295,7 +300,11 @@ def main():
         except KeyError:
             sys.stderr.write(usage)
             sys.exit(1)
-        func(store, sys.argv[3:])
+        try:
+            func(store, args[2:])
+        except Exception:
+            import traceback; traceback.print_exc()
+            sys.exit(3)
     finally:
         store.close()
 
