@@ -213,7 +213,8 @@ class FileStore(object):
                 warnings.warn("%s is a symbolic link, using target file "
                               "instead" % newfile,
                               UsageWarning)
-            newfile = open(newfile, 'rb')
+            with open(newfile, 'rb') as fp:
+                return self.add_file(fp, metadata)
         newfile.seek(0, os.SEEK_SET)
         filehash = hash_file(newfile)
         newfile.seek(0, os.SEEK_SET)
