@@ -9,4 +9,4 @@ except ImportError:
 
 if __name__ == '__main__':
     from file_archive.main import main
-    main(sys.argv)
+    main(sys.argv[1:])

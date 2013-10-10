@@ -19,7 +19,7 @@ def run_program(*args, **kwargs):
     old_stdout, old_stderr = sys.stdout, sys.stderr
     sys.stdout, sys.stderr = out, err
     try:
-        file_archive.main.main(args)
+        file_archive.main.main(list(args))
         raise Exception("Program didn't exit")
     except SystemExit as e:
         return e.code
