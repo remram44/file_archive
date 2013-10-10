@@ -14,10 +14,14 @@ from file_archive.errors import CreationError, InvalidStore
 from .common import temp_dir
 
 
+requires_symlink = unittest.skipIf(platform.system() == 'Windows',
+                                   "Symlinks unavailable")
+
+
 class TestInternals(unittest.TestCase):
     """Tests internal functions.
     """
-    @unittest.skipIf(platform.system() == 'Windows', "Symlinks unavailable")
+    @requires_symlink
     def test_relativize_link(self):
         with temp_dir() as t:
             d = os.path.join(t, 'inner')
@@ -259,7 +263,7 @@ class TestStore(unittest.TestCase):
         with self.assertRaises(KeyError):
             self.store.get(h)
 
-    @unittest.skipIf(platform.system() == 'Windows', "Symlinks unavailable")
+    @requires_symlink
     def test_symlinks(self):
         with temp_dir() as d:
             shutil.copyfile(self.t('file1.bin'), os.path.join(d, 'file'))
