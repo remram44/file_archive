@@ -107,9 +107,9 @@ def cmd_query(store, args):
         del args[0]
     h, metadata = parse_query_metadata(args)
     if h is not None:
-        sys.stderr.write("query doesn't take a hash but conditions\n")
-        sys.exit(1)
-    entries = store.query(metadata)
+        entries = [store.get(h)]
+    else:
+        entries = store.query(metadata)
     if not pydict:
         for entry in entries:
             sys.stdout.write("%s\n" % entry['hash'])
