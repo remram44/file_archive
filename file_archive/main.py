@@ -142,7 +142,7 @@ def cmd_query(store, args):
                         assert isinstance(v, unicode_type)
                         v = "u%s" % quote_str(v)
                 k = quote_str(k)
-                sys.stdout.write("        u'%s': %s,\n" % (k, v))
+                sys.stdout.write("        u%s: %s,\n" % (k, v))
             sys.stdout.write('    },\n')
         sys.stdout.write('}\n')
 

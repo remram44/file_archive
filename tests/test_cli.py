@@ -98,7 +98,32 @@ class TestStore(unittest.TestCase):
         self.assertEqual(run_program(self.path, 'add', 'nonexistentpath-fa'),
                          1)
 
-    # TODO : query, print
+    def test_query(self):
+        self.store.add_file(self.t('file1.bin'), {'tag': 'testfile', 'test': 1})
+        self.store.add_file(self.t('file2.bin'), {'tag': 'other', 'test': 2})
+
+        def r(*args):
+            out = []
+            self.assertEqual(run_program(self.path, *args, out=out), 0)
+            return out
+
+        h1 = 'fce92fa2647153f7d696a3c1884d732290273102'
+        h2 = 'de0ccf54a9c1de0d9fdbf23f71a64762448057d0'
+
+        out = r('query', 'tag=testfile')
+        self.assertEqual(len(out), 3)
+        self.assertEqual(out[0], h1)
+        m1 = '\t%s\t%s' % ('test', '1')
+        m2 = '\t%s\t%s' % ('tag', 'testfile')
+        self.assertTrue(out[1:] in ([m1, m2], [m2, m1]))
+
+        out = r('query', '-d')
+        self.assertEqual(eval('\n'.join(out)), {
+                h1: {'tag': 'testfile', 'test': 1},
+                h2: {'tag': 'other', 'test': 2},
+            })
+
+    # TODO : print
 
 
 # TODO : parse_query_metadata(), parse_new_metadata()
