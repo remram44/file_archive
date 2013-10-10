@@ -288,7 +288,7 @@ class TestStore(unittest.TestCase):
         def test_warning(warns):
             self.assertEqual(len(warns), 1)
             self.assertIs(type(warns[0].message), UsageWarning)
-            self.assertTrue(warns[0].message.message.endswith(
+            self.assertTrue(warns[0].message.args[0].endswith(
                     "is a symbolic link, using target file instead"))
         with temp_dir() as d:
             os.symlink(self.t('file1.bin'), os.path.join(d, 'link'))
