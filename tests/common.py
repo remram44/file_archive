@@ -2,6 +2,7 @@ import contextlib
 import os
 import shutil
 import tempfile
+import warnings
 
 
 @contextlib.contextmanager
@@ -19,3 +20,17 @@ def temp_dir(make=True):
             yield os.path.join(path, 'internal')
     finally:
         shutil.rmtree(path)
+
+
+@contextlib.contextmanager
+def temp_warning_filter():
+    """Context manager saving the warning filters.
+
+    When leaving the context, the filters are reset to what they were when the
+    context was entered.
+    """
+    filters = warnings.filters[:]
+    try:
+        yield
+    finally:
+        warnings.filters = filters
