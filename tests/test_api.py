@@ -2,6 +2,7 @@ import os
 import platform
 import shutil
 import tempfile
+import warnings
 
 try:
     import unittest2 as unittest
@@ -9,9 +10,9 @@ except ImportError:
     import unittest
 
 from file_archive import FileStore, relativize_link
-from file_archive.errors import CreationError, InvalidStore
+from file_archive.errors import CreationError, InvalidStore, UsageWarning
 
-from .common import temp_dir
+from .common import temp_dir, temp_warning_filter
 
 
 requires_symlink = unittest.skipIf(platform.system() == 'Windows',
@@ -264,7 +265,7 @@ class TestStore(unittest.TestCase):
             self.store.get(h)
 
     @requires_symlink
-    def test_symlinks(self):
+    def test_internal_symlink(self):
         with temp_dir() as d:
             shutil.copyfile(self.t('file1.bin'), os.path.join(d, 'file'))
             os.mkdir(os.path.join(d, 'dir'))
@@ -281,3 +282,31 @@ class TestStore(unittest.TestCase):
             self.assertTrue(os.path.islink(os.path.join(path, 'dir', 'link')))
             self.assertEqual(os.readlink(os.path.join(path, 'dir', 'link')),
                              '../file')
+
+    @requires_symlink
+    def test_external_symlink(self):
+        def test_warning(warns):
+            self.assertEqual(len(warns), 1)
+            self.assertIs(type(warns[0].message), UsageWarning)
+            self.assertTrue(warns[0].message.message.endswith(
+                    "is a symbolic link, using target file instead"))
+        with temp_dir() as d:
+            os.symlink(self.t('file1.bin'), os.path.join(d, 'link'))
+            with warnings.catch_warnings(record=True) as warns:
+                self.store.add(d, {})
+            test_warning(warns)
+            with warnings.catch_warnings(record=True) as warns:
+                self.store.add_file(os.path.join(d, 'link'), {})
+
+    @requires_symlink
+    def test_symlink_recursive(self):
+        with temp_dir() as d:
+            shutil.copyfile(self.t('file1.bin'), os.path.join(d, 'file'))
+            os.symlink(d, os.path.join(d, 'link'))
+            with temp_warning_filter():
+                warnings.filterwarnings(
+                        'ignore',
+                        '.*is a symbolic link, recursing on target directory$',
+                        UsageWarning)
+                with self.assertRaises(ValueError):
+                    self.store.add_directory(d, {'some': 'data'})
