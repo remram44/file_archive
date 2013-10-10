@@ -31,7 +31,7 @@ def copy_file(fileobj, destination):
             while chunk:
                 destobj.write(chunk)
                 chunk = fileobj.read(CHUNKSIZE)
-        except:
+        except: # pragma: no coverage
             os.remove(destination)
             raise
 
@@ -108,7 +108,7 @@ def copy_directory(sourcepath, destination, root=None):
             else:
                 with open(pf, 'rb') as fd:
                     copy_file(fd, df)
-    except:
+    except: # pragma: no cover
         shutil.rmtree(destination)
         raise
 
