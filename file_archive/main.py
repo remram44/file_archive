@@ -74,9 +74,20 @@ def parse_new_metadata(args):
         k, v = k
         if ':' in v:
             t, v = v.split(':', 1)
-            metadata[k] = {'type': t, 'value': v}
         else:
-            metadata[k] = v
+            t = 'str'
+        if k in metadata:
+            sys.stderr.write("Multiple values for key %s\n" % k)
+            sys.exit(1)
+        if t == 'int':
+            v = int(v)
+        elif t != 'str':
+            sys.stderr.write("Metadata has unknown type '%s'! Only 'str' and "
+                             "'int' are supported.\n"
+                             "If you meant a string with a ':', use "
+                             "'str:mystring'" % t)
+            sys.exit(1)
+        metadata[k] = {'type': t, 'value': v}
     return metadata
 
 

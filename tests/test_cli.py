@@ -182,4 +182,22 @@ class TestParseQuery(unittest.TestCase):
         error1('k=burger:A')
 
 
-# TODO : parse_new_metadata()
+class TestParseNewData(unittest.TestCase):
+    def test_data(self):
+        self.assertEqual(file_archive.main.parse_new_metadata(
+                ['type=a file', 'month=str:october',
+                 'time=str:11:40', 'year=int:2013']),
+                {'type': {'type': 'str', 'value': u'a file'},
+                 'month': {'type': 'str', 'value': u'october'},
+                 'time': {'type': 'str', 'value': u'11:40'},
+                 'year': {'type': 'int', 'value': 2013}})
+
+    def test_errors(self):
+        def error1(*args):
+            with catch_errorexit() as e:
+                file_archive.main.parse_query_metadata(args)
+            self.assertEqual(e[0], 1)
+
+        error1('a', 'b')
+        error1('k=burger:A')
+        error1('k=str:A', 'k=int:7')
