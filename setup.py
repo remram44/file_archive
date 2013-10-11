@@ -16,7 +16,7 @@ Its purpose is to be used as a persistent file store for the VisTrails workflow
 and provenance management system: http://www.vistrails.org/
 """
 setup(name='file_archive',
-      version='0.2',
+      version='0.3',
       packages=['file_archive'],
       entry_points={
           'console_scripts': ['file_archive = file_archive.main:main']},
