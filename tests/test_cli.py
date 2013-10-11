@@ -1,13 +1,14 @@
+import contextlib
 import os
 import sys
 import tempfile
-from file_archive import FileStore
 import shutil
 try:
     import unittest2 as unittest
 except ImportError:
     import unittest
 
+from file_archive import FileStore
 from file_archive.compat import StringIO
 import file_archive.main
 
@@ -124,6 +125,21 @@ class TestStore(unittest.TestCase):
             })
 
     # TODO : print
+
+
+@contextlib.contextmanager
+def catch_errorexit():
+    err = StringIO()
+    old_stderr, sys.stderr = sys.stderr, err
+    ret = [None]
+    try:
+        yield ret
+    except SystemExit as e:
+        ret[0] = e.code
+    else:
+        ret[0] = None
+    finally:
+        sys.stderr = old_stderr
 
 
 # TODO : parse_query_metadata(), parse_new_metadata()
