@@ -41,9 +41,23 @@ def parse_query_metadata(args):
                                      "'str' and 'int' are supported.\n"
                                      "If you meant a string with a ':', use "
                                      "'str:mystring'" % t)
-                metadata[k] = {'type': t, req: v}
+                    sys.exit(1)
             else:
-                metadata[k] = v
+                t = 'str'
+                req = 'equal'
+            if k in metadata:
+                if t != metadata[k]['type']:
+                    sys.stderr.write("Differing types types for conditions on "
+                                     "key %s: %s, %s\n" % (
+                                     k, metadata[k]['type'], t))
+                    sys.exit(1)
+                if req in metadata[k]:
+                    sys.stderr.write("Multiple conditions %s on key %s\n" % (
+                                     req, k))
+                    sys.exit(1)
+                metadata[k][req] = v
+            else:
+                metadata[k] = {'type': t, req: v}
         return None, metadata
 
 

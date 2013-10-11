@@ -142,4 +142,44 @@ def catch_errorexit():
         sys.stderr = old_stderr
 
 
-# TODO : parse_query_metadata(), parse_new_metadata()
+class TestParseQuery(unittest.TestCase):
+    def test_hash(self):
+        h = '22596363b3de40b06f981fb85d82312e8c0ed511'
+        self.assertEqual(file_archive.main.parse_query_metadata([h]),
+                         (h, None))
+
+        with catch_errorexit() as e:
+            file_archive.main.parse_query_metadata([h, 'tag=file'])
+        self.assertEqual(e[0], 1)
+
+    def test_strs(self):
+        strs = ['type=a file',
+                'month=str:october',
+                'time=str:11:20']
+        dct = {'type': {'type': 'str', 'equal': u'a file'},
+               'month': {'type': 'str', 'equal': u'october'},
+               'time': {'type': 'str', 'equal': u'11:20'}}
+        self.assertEqual(file_archive.main.parse_query_metadata(strs),
+                         (None, dct))
+
+    def test_ints(self):
+        strs = ['year=int:2013', 'age=int:>21', 'nb=int:>2', 'nb=int:<4']
+        dct = {'year': {'type': 'int', 'equal': 2013},
+               'age': {'type': 'int', 'gt': 21},
+               'nb': {'type': 'int', 'gt': 2, 'lt': 4}}
+        self.assertEqual(file_archive.main.parse_query_metadata(strs),
+                         (None, dct))
+
+    def test_errors(self):
+        def error1(*args):
+            with catch_errorexit() as e:
+                file_archive.main.parse_query_metadata(args)
+            self.assertEqual(e[0], 1)
+
+        error1('k=int:<2', 'k=int:<3')
+        error1('k=str:age', 'k=int:23')
+        error1('k=str:A', 'k=str:B')
+        error1('k=burger:A')
+
+
+# TODO : parse_new_metadata()
