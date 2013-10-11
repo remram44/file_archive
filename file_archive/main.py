@@ -275,12 +275,21 @@ def cmd_verify(store, args):
     store.verify()
 
 
+def cmd_view(store, args):
+    if args:
+        sys.stderr.write("view command accepts no argument\n")
+        sys.exit(1)
+    from .viewer import run_viewer
+    run_viewer(store)
+
+
 commands = {
         'add': cmd_add,
         'query': cmd_query,
         'print': cmd_print,
         'remove': cmd_remove,
         'verify': cmd_verify,
+        'view': cmd_view,
     }
 
 
@@ -295,7 +304,8 @@ def main(args):
             "   or: {bin} <store> print [-m] [-t] [key1=value1] [...]\n"
             "   or: {bin} <store> remove [-f] <filehash>\n"
             "   or: {bin} <store> remove [-f] <key1=value1> [...]\n"
-            "   or: {bin} <store> verify\n".format(
+            "   or: {bin} <store> verify\n"
+            "   or: {bin} <store> view\n".format(
             bin='file_archive'))
 
     if len(args) < 2:

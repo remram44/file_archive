@@ -36,4 +36,5 @@ setup(name='file_archive',
         'Operating System :: OS Independent',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
-        'Topic :: System :: Archiving'])
+        'Topic :: System :: Archiving'],
+      requires=['tdparser (>=1.1.4)'])
