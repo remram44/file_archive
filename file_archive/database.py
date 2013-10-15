@@ -91,7 +91,8 @@ class MetadataStore(object):
                         try:
                             t = r.pop('type')
                             mvalue = r.pop('value')
-                            if r: raise KeyError
+                            if r:
+                                raise KeyError
                         except KeyError:
                             raise ValueError("Metadata values should be "
                                              "dictionaries with the format:\n"
@@ -224,7 +225,7 @@ class MetadataStore(object):
                     t = req.pop('type')
                 except KeyError:
                     raise TypeError("Query conditions should include key "
-                                     "'type'")
+                                    "'type'")
                 req = iter(req.items())
                 if t not in ('str', 'int'):
                     raise TypeError("Unknown data type %r" % t)
@@ -282,6 +283,7 @@ class ResultBuilder(object):
         else:
             r = self.record
         h = r['hash']
+
         def get_value(r):
             for datatype, name in MetadataStore._TYPES:
                 v = r['mvalue_%s' % name]
@@ -290,6 +292,7 @@ class ResultBuilder(object):
             else: # pragma: no cover
                 raise Error("SQL query didn't return a value for "
                             "hash=%s, key=%s" % (r['hash'], r['mkey']))
+
         # We are outer joining, so a hash with no metadata will be returned as
         # a single row with mkey=NULL and everything but hash NULL
         if len(r) > 1 and r['mkey']:

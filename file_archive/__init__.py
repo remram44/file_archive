@@ -42,7 +42,7 @@ def relativize_link(link, root):
     If the target is not inside root, returns None.
     root must be a realpath (os.path.realpath()).
     """
-    target = os.path.join(os.path.dirname(link),  os.readlink(link))
+    target = os.path.join(os.path.dirname(link), os.readlink(link))
     target = os.path.realpath(target)
     root = root + os.path.sep
     if os.path.commonprefix([target, root]) == root:
@@ -194,7 +194,7 @@ class FileStore(object):
         if not isinstance(filehash, string_types):
             raise TypeError("hash should be a string, not %s" % type(filehash))
         dirname = os.path.join(self.store, filehash[:2])
-        if not os.path.isdir(dirname):
+        if make_dir and not os.path.isdir(dirname):
             os.mkdir(dirname)
         return os.path.join(dirname, filehash[2:])
 
