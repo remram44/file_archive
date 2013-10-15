@@ -1,3 +1,4 @@
+import locale
 import os
 import sys
 try:
@@ -13,6 +14,9 @@ if not top_level in sys.path:
 
 
 sys.path.append(start_dir)
+
+
+locale.setlocale(locale.LC_ALL, 'C')
 
 
 class Program(unittest.TestProgram):

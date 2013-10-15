@@ -27,6 +27,7 @@ except ImportError:
 
 from .compat import int_types
 from .parser import parse_expression
+from .trans import _
 
 
 system = platform.system().lower()
@@ -41,16 +42,6 @@ elif system.startswith('linux'):
         subprocess.call(['xdg-open', filename])
 else:
     openfile = None
-
-
-def _(s, disambiguation=None, **kwargs):
-    if kwargs:
-        s = s.format(**kwargs)
-    return QtCore.QCoreApplication.translate(
-            'file_archive.viewer',
-            s,
-            disambiguation,
-            QtCore.QCoreApplication.UnicodeUTF8)
 
 
 class SearchError(Exception):

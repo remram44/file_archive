@@ -1,3 +1,4 @@
+import locale
 import os
 import sys
 try:
@@ -9,4 +10,5 @@ except ImportError:
 
 if __name__ == '__main__':
     from file_archive.main import main
+    locale.setlocale(locale.LC_ALL, '')
     main(sys.argv[1:])
