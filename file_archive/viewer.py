@@ -78,6 +78,7 @@ class MetadataItem(FileItem):
 class StoreViewerWindow(QtGui.QMainWindow):
     def __init__(self, store):
         QtGui.QMainWindow.__init__(self)
+        self.setWindowTitle(_(u"file_archive viewer"))
 
         self.store = store
 
