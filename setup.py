@@ -1,7 +1,22 @@
+import os
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
+
+
+translation_files = []
+def add_translations(realpath, path):
+    for f in os.listdir(realpath):
+        rf = os.path.join(realpath, f)
+        pf = os.path.join(path, f)
+        if os.path.isdir(rf):
+            add_translations(rf, pf)
+        elif os.path.isfile(rf):
+            translation_files.append(pf)
+add_translations(
+        os.path.join(os.path.dirname(__file__), 'file_archive', 'l10n'),
+        'l10n')
 
 
 description = """
@@ -26,9 +41,10 @@ setup(name='file_archive',
       url='http://github.com/remram44/file_archive',
       long_description=description,
       license='Modified BSD License',
-      package_data = {
-        'file_archive': ['l10n/*.mo'],
+      package_data={
+        'file_archive': translation_files,
       },
+      zip_safe=True,
       keywords=['file', 'archive', 'metadata'],
       classifiers=[
         'Development Status :: 3 - Alpha',
