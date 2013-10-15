@@ -26,6 +26,9 @@ setup(name='file_archive',
       url='http://github.com/remram44/file_archive',
       long_description=description,
       license='Modified BSD License',
+      package_data = {
+        'file_archive': ['l10n/*.mo'],
+      },
       keywords=['file', 'archive', 'metadata'],
       classifiers=[
         'Development Status :: 3 - Alpha',
