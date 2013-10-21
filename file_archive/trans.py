@@ -9,7 +9,10 @@ import pkg_resources
 
 d = pkg_resources.resource_filename('file_archive', 'l10n')
 
-languages = [locale.getlocale()[0]]
+languages = []
+lang = locale.getlocale()[0]
+if lang is not None:
+    languages.append(lang)
 trans = gettext.translation('file_archive', d, languages, fallback=True)
 
 
