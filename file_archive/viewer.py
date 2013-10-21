@@ -30,7 +30,7 @@ except ImportError:
 
 from .compat import int_types
 from .parser import parse_expression
-from .trans import _
+from .trans import _, _n
 
 
 MAX_RESULTS = 100
@@ -226,8 +226,12 @@ class StoreViewerWindow(QtGui.QMainWindow):
         confirm = QtGui.QMessageBox.question(
                 self,
                 _(u"Are you sure?"),
-                _(u"You are about to delete {num} entries from the store. "
-                  u"Please confirm.", num=len(items)),
+                _n(u"You are about to delete {num} entry from the store. "
+                   u"Please confirm.",
+                   u"You are about to delete {num} entries from the store. "
+                   u"Please confirm.",
+                   len(items),
+                   num=len(items)),
                 QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel,
                 QtGui.QMessageBox.Cancel)
         if confirm == QtGui.QMessageBox.Ok:
