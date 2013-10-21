@@ -33,6 +33,9 @@ from .parser import parse_expression
 from .trans import _
 
 
+MAX_RESULTS = 100
+
+
 system = platform.system().lower()
 if system == 'windows':
     def openfile(filename):
@@ -172,14 +175,30 @@ class StoreViewerWindow(QtGui.QMainWindow):
             w.setForeground(0, QtGui.QColor(255, 0, 0))
             self._result_tree.addTopLevelItem(w)
         else:
-            for entry in entries:
+            for i, entry in enumerate(entries):
                 file_item = FileItem(entry['hash'])
+                f = file_item.font(0)
+                f.setBold(True)
+                file_item.setFont(0, f)
                 self._result_tree.addTopLevelItem(file_item)
                 self._result_tree.setFirstItemColumnSpanned(file_item, True)
                 for k, v in entry.metadata.items():
                     if k == 'hash':
                         continue
                     file_item.addChild(MetadataItem(entry['hash'], k, v))
+
+                if i >= MAX_RESULTS:
+                    last_item = QtGui.QTreeWidgetItem(
+                            [_(u"... stripped after {nb} results...").format(
+                                       nb=MAX_RESULTS)])
+                    f = last_item.font(0)
+                    f.setBold(True)
+                    f.setItalic(True)
+                    last_item.setFont(0, f)
+                    self._result_tree.addTopLevelItem(last_item)
+                    self._result_tree.setFirstItemColumnSpanned(last_item,
+                                                                True)
+                    break
             self._result_tree.expandAll()
 
         self._set_needs_refresh(False)
