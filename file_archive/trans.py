@@ -18,3 +18,6 @@ trans = gettext.translation('file_archive', d, languages, fallback=True)
 
 def _(*args):
     return trans.ugettext(*args)
+
+def _n(singular, plural, n):
+    return trans.ungettext(singular, plural, n)
