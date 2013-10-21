@@ -189,8 +189,8 @@ class StoreViewerWindow(QtGui.QMainWindow):
 
                 if i >= MAX_RESULTS:
                     last_item = QtGui.QTreeWidgetItem(
-                            [_(u"... stripped after {nb} results...").format(
-                                       nb=MAX_RESULTS)])
+                            [_(u"... stripped after {nb} results...",
+                               nb=MAX_RESULTS)])
                     f = last_item.font(0)
                     f.setBold(True)
                     f.setItalic(True)
@@ -227,7 +227,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
                 self,
                 _(u"Are you sure?"),
                 _(u"You are about to delete {num} entries from the store. "
-                  "Please confirm.", num=len(items)),
+                  u"Please confirm.", num=len(items)),
                 QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel,
                 QtGui.QMessageBox.Cancel)
         if confirm == QtGui.QMessageBox.Ok:

@@ -16,8 +16,14 @@ if lang is not None:
 trans = gettext.translation('file_archive', d, languages, fallback=True)
 
 
-def _(*args):
-    return trans.ugettext(*args)
+def _(*args, **kwargs):
+    tr = trans.ugettext(*args)
+    if kwargs:
+        tr = tr.format(**kwargs)
+    return tr
 
-def _n(singular, plural, n):
-    return trans.ungettext(singular, plural, n)
+def _n(singular, plural, n, **kwargs):
+    tr = trans.ungettext(singular, plural, n)
+    if kwargs:
+        tr = tr.format(**kwargs)
+    return tr
