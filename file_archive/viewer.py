@@ -78,16 +78,20 @@ class StoreViewerWindow(QtGui.QMainWindow):
 
         searchbar = QtGui.QHBoxLayout()
 
+        self._needs_refresh = False
+
         # Input line for the query
         self._input = QtGui.QLineEdit()
         self._input.setPlaceholderText(_(u"Enter query here"))
         self._input.returnPressed.connect(self._search)
+        self._input.textEdited.connect(lambda t: self._set_needs_refresh())
         searchbar.addWidget(self._input)
 
         # Search button
-        searchbutton = QtGui.QPushButton(_(u"Search"))
-        searchbutton.clicked.connect(self._search)
-        searchbar.addWidget(searchbutton)
+        self._searchbutton = QtGui.QPushButton(_(u"Search"))
+        self._searchbutton.clicked.connect(self._search)
+        self._set_needs_refresh(True)
+        searchbar.addWidget(self._searchbutton)
 
         results = QtGui.QHBoxLayout()
 
@@ -130,6 +134,16 @@ class StoreViewerWindow(QtGui.QMainWindow):
         widget.setLayout(layout)
         self.setCentralWidget(widget)
 
+    def _set_needs_refresh(self, needs=True):
+        if needs == self._needs_refresh:
+            return
+
+        if needs:
+            self._searchbutton.setStyleSheet('font-weight: bold;')
+        else:
+            self._searchbutton.setStyleSheet('')
+        self._needs_refresh = needs
+
     def _search(self):
         error = None
 
@@ -167,6 +181,8 @@ class StoreViewerWindow(QtGui.QMainWindow):
                         continue
                     file_item.addChild(MetadataItem(entry['hash'], k, v))
             self._result_tree.expandAll()
+
+        self._set_needs_refresh(False)
 
     def _selection_changed(self):
         items = self._result_tree.selectedItems()
