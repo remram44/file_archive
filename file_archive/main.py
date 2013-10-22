@@ -5,6 +5,7 @@ import warnings
 from file_archive import FileStore, CHUNKSIZE
 from file_archive.compat import int_types, unicode_type, quote_str
 from file_archive.errors import UsageWarning
+import locale
 
 
 def parse_query_metadata(args):
@@ -45,6 +46,8 @@ def parse_query_metadata(args):
             else:
                 t = 'str'
                 req = 'equal'
+            if t == 'str' and isinstance(v, bytes):
+                v = v.decode(locale.getpreferredencoding())
             if k in metadata:
                 if t != metadata[k]['type']:
                     sys.stderr.write("Differing types types for conditions on "
@@ -81,7 +84,10 @@ def parse_new_metadata(args):
             sys.exit(1)
         if t == 'int':
             v = int(v)
-        elif t != 'str':
+        elif t == 'str':
+            if isinstance(v, bytes):
+                v = v.decode(locale.getpreferredencoding())
+        else:
             sys.stderr.write("Metadata has unknown type '%s'! Only 'str' and "
                              "'int' are supported.\n"
                              "If you meant a string with a ':', use "

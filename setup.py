@@ -1,22 +1,7 @@
-import os
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
-
-
-translation_files = []
-def add_translations(realpath, path):
-    for f in os.listdir(realpath):
-        rf = os.path.join(realpath, f)
-        pf = os.path.join(path, f)
-        if os.path.isdir(rf):
-            add_translations(rf, pf)
-        elif os.path.isfile(rf):
-            translation_files.append(pf)
-add_translations(
-        os.path.join(os.path.dirname(__file__), 'file_archive', 'l10n'),
-        'l10n')
 
 
 description = """
@@ -34,7 +19,8 @@ setup(name='file_archive',
       version='0.3',
       packages=['file_archive'],
       entry_points={
-          'console_scripts': ['file_archive = file_archive.main:main']},
+        'console_scripts': [
+          'file_archive = file_archive.entry_point:entry_point']},
       description='A file store with searchable metadata',
       author="NYU-Poly",
       author_email='vistrails-dev@vistrails.org',
@@ -42,7 +28,7 @@ setup(name='file_archive',
       long_description=description,
       license='Modified BSD License',
       package_data={
-        'file_archive': translation_files,
+        'file_archive': ['l10n/*/LC_MESSAGES/*.mo'],
       },
       zip_safe=True,
       keywords=['file', 'archive', 'metadata'],

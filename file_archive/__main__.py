@@ -1,14 +1,11 @@
-import locale
 import os
 import sys
 try:
-    import file_archive
+    from file_archive.entry_point import entry_point
 except ImportError:
     sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-    import file_archive
+    from file_archive.entry_point import entry_point
 
 
 if __name__ == '__main__':
-    from file_archive.main import main
-    locale.setlocale(locale.LC_ALL, '')
-    main(sys.argv[1:])
+    entry_point()
