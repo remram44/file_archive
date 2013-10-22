@@ -7,6 +7,9 @@ from .database import MetadataStore
 from .errors import CreationError, InvalidStore, UsageWarning
 
 
+__version__ = '0.4'
+
+
 CHUNKSIZE = 4096
 
 
