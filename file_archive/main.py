@@ -1,3 +1,4 @@
+import locale
 import os
 import sys
 import warnings
@@ -5,7 +6,7 @@ import warnings
 from file_archive import FileStore, CHUNKSIZE
 from file_archive.compat import int_types, unicode_type, quote_str
 from file_archive.errors import UsageWarning
-import locale
+from file_archive.trans import _
 
 
 def parse_query_metadata(args):
@@ -20,9 +21,9 @@ def parse_query_metadata(args):
         for a in args:
             k = a.split('=', 1)
             if len(k) != 2:
-                sys.stderr.write("Metadata should have format key=value, "
-                                 "key=type:value (eg. age=int:23) or"
-                                 "key=type:req (eg. age=int:>21\n")
+                sys.stderr.write(_(u"Metadata should have format key=value, "
+                                   u"key=type:value (eg. age=int:23) or"
+                                   u"key=type:req (eg. age=int:>21\n"))
                 sys.exit(1)
             k, v = k
             if ':' in v:
@@ -38,10 +39,10 @@ def parse_query_metadata(args):
                 elif t == 'str':
                     req = 'equal'
                 else:
-                    sys.stderr.write("Metadata has unknown type '%s'! Only "
-                                     "'str' and 'int' are supported.\n"
-                                     "If you meant a string with a ':', use "
-                                     "'str:mystring'" % t)
+                    sys.stderr.write(_(u"Metadata has unknown type '{t}'! "
+                                       u"Only 'str' and 'int' are supported.\n"
+                                       u"If you meant a string with a ':', "
+                                       u"use 'str:mystring'", t=t))
                     sys.exit(1)
             else:
                 t = 'str'
@@ -50,13 +51,14 @@ def parse_query_metadata(args):
                 v = v.decode(locale.getpreferredencoding())
             if k in metadata:
                 if t != metadata[k]['type']:
-                    sys.stderr.write("Differing types types for conditions on "
-                                     "key %s: %s, %s\n" % (
-                                     k, metadata[k]['type'], t))
+                    sys.stderr.write(_(u"Differing types for conditions on key"
+                                       u"{k}: {t1}, {t2}\n",
+                                       k=k, t1=metadata[k]['type'], t2=t))
                     sys.exit(1)
                 if req in metadata[k]:
-                    sys.stderr.write("Multiple conditions %s on key %s\n" % (
-                                     req, k))
+                    sys.stderr.write(_(u"Multiple conditions {cond} on key "
+                                       u"{k}\n",
+                                       cond=req, k=k))
                     sys.exit(1)
                 metadata[k][req] = v
             else:
@@ -71,8 +73,8 @@ def parse_new_metadata(args):
     for a in args:
         k = a.split('=', 1)
         if len(k) != 2:
-            sys.stderr.write("Metadata should have format key=value or "
-                             "key=type:value (eg. age=int:23)\n")
+            sys.stderr.write(_(u"Metadata should have format key=value or "
+                               u"key=type:value (eg. age=int:23)\n"))
             sys.exit(1)
         k, v = k
         if ':' in v:
@@ -88,10 +90,10 @@ def parse_new_metadata(args):
             if isinstance(v, bytes):
                 v = v.decode(locale.getpreferredencoding())
         else:
-            sys.stderr.write("Metadata has unknown type '%s'! Only 'str' and "
-                             "'int' are supported.\n"
-                             "If you meant a string with a ':', use "
-                             "'str:mystring'" % t)
+            sys.stderr.write(_(u"Metadata has unknown type '{t}'! Only 'str' "
+                               u"and 'int' are supported.\n"
+                               u"If you meant a string with a ':', use "
+                               u"'str:mystring'", t=t))
             sys.exit(1)
         metadata[k] = {'type': t, 'value': v}
     return metadata
@@ -103,11 +105,11 @@ def cmd_add(store, args):
     add <filename> [key1=value1] [...]
     """
     if not args:
-        sys.stderr.write("Missing filename\n")
+        sys.stderr.write(_(u"Missing filename\n"))
         sys.exit(1)
     filename = args[0]
     if not os.path.exists(filename):
-        sys.stderr.write("Path does not exist: %s\n" % filename)
+        sys.stderr.write(_(u"Path does not exist: {path}\n", path=filename))
         sys.exit(1)
     metadata = parse_new_metadata(args[1:])
     if os.path.isdir(filename):
@@ -133,7 +135,7 @@ def cmd_query(store, args):
             del args[0]
             break
         else:
-            sys.stderr.write("Unknown option: %s\n", args[0])
+            sys.stderr.write(_(u"Unknown option: {opt}\n", opt=args[0]))
             sys.exit(1)
         del args[0]
     h, metadata = parse_query_metadata(args)
@@ -195,7 +197,7 @@ def cmd_print(store, args):
             del args[0]
             break
         else:
-            sys.stderr.write("Unknown option: %s\n", args[0])
+            sys.stderr.write(_(u"Unknown option: {opt}\n", opt=args[0]))
             sys.exit(1)
         del args[0]
     h, metadata = parse_query_metadata(args)
@@ -203,21 +205,21 @@ def cmd_print(store, args):
         try:
             entry = store.get(h)
         except:
-            sys.stderr.write("Hash not found\n")
+            sys.stderr.write(_(u"Hash not found\n"))
             sys.exit(2)
     else:
         entries = store.query(metadata)
         try:
             entry = next(entries)
         except StopIteration:
-            sys.stderr.write("No match found\n")
+            sys.stderr.write(_(u"No match found\n"))
             sys.exit(2)
         try:
             next(entries)
         except StopIteration:
             pass
         else:
-            sys.stderr.write("Warning: more matching files exist\n")
+            sys.stderr.write(_(u"Warning: more matching files exist\n"))
     if meta:
         for k, v in entry.metadata.items():
             if k == 'hash':
@@ -230,7 +232,7 @@ def cmd_print(store, args):
             sys.stdout.write("%s\t%s\n" % (k, v))
     else:
         if os.path.isdir(entry.filename):
-            sys.stderr.write("Error: match found but is a directory\n")
+            sys.stderr.write(_(u"Error: match found but is a directory\n"))
             sys.exit(2)
         fp = entry.open()
         try:
@@ -261,10 +263,11 @@ def cmd_remove(store, args):
         if not args and not force:
             nb = sum(1 for e in entries)
             if nb:
-                sys.stderr.write("Error: not removing files unconditionally "
-                                 "unless -f is given\n"
-                                 "(command would have removed %d files)\n" % (
-                                 nb))
+                sys.stderr.write(_(
+                        u"Error: not removing files unconditionally unless -f "
+                        u"is given\n"
+                        u"(command would have removed {nb} files)\n",
+                        nb=nb))
                 sys.exit(1)
         for e in entries:
             store.remove(e)
@@ -276,14 +279,14 @@ def cmd_verify(store, args):
     This command accepts no argument.
     """
     if args:
-        sys.stderr.write("verify command accepts no argument\n")
+        sys.stderr.write(_(u"verify command accepts no argument\n"))
         sys.exit(1)
     store.verify()
 
 
 def cmd_view(store, args):
     if args:
-        sys.stderr.write("view command accepts no argument\n")
+        sys.stderr.write(_(u"view command accepts no argument\n"))
         sys.exit(1)
     from .viewer import run_viewer
     run_viewer(store)
@@ -302,17 +305,17 @@ commands = {
 def main(args):
     warnings.filterwarnings('always', category=UsageWarning)
 
-    usage = (
-            "usage: {bin} <store> create\n"
-            "   or: {bin} <store> add <filename> [key1=value1] [...]\n"
-            "   or: {bin} <store> query [-d] [-t] [key1=value1] [...]\n"
-            "   or: {bin} <store> print [-m] [-t] <filehash> [...]\n"
-            "   or: {bin} <store> print [-m] [-t] [key1=value1] [...]\n"
-            "   or: {bin} <store> remove [-f] <filehash>\n"
-            "   or: {bin} <store> remove [-f] <key1=value1> [...]\n"
-            "   or: {bin} <store> verify\n"
-            "   or: {bin} <store> view\n".format(
-            bin='file_archive'))
+    usage = _(
+            u"usage: {bin} <store> create\n"
+            u"   or: {bin} <store> add <filename> [key1=value1] [...]\n"
+            u"   or: {bin} <store> query [-d] [-t] [key1=value1] [...]\n"
+            u"   or: {bin} <store> print [-m] [-t] <filehash> [...]\n"
+            u"   or: {bin} <store> print [-m] [-t] [key1=value1] [...]\n"
+            u"   or: {bin} <store> remove [-f] <filehash>\n"
+            u"   or: {bin} <store> remove [-f] <key1=value1> [...]\n"
+            u"   or: {bin} <store> verify\n"
+            u"   or: {bin} <store> view\n",
+            bin='file_archive')
 
     if len(args) < 2:
         sys.stderr.write(usage)
@@ -325,14 +328,14 @@ def main(args):
         try:
             FileStore.create_store(store)
         except Exception as e:
-            sys.stderr.write("Can't create store: %s\n" % e.args[0])
+            sys.stderr.write(_(u"Can't create store: {err}\n", err=e.args[0]))
             sys.exit(3)
         sys.exit(0)
 
     try:
         store = FileStore(store)
     except Exception as e:
-        sys.stderr.write("Invalid store: %s\n" % e.args[0])
+        sys.stderr.write(_(u"Invalid store: {err}\n", err=e.args[0]))
         sys.exit(3)
 
     try:

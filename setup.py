@@ -21,7 +21,7 @@ setup(name='file_archive',
       entry_points={
         'console_scripts': [
           'file_archive = file_archive.entry_point:entry_point']},
-      description='A file store with searchable metadata',
+      description="A file store with searchable metadata",
       author="NYU-Poly",
       author_email='vistrails-dev@vistrails.org',
       url='http://github.com/remram44/file_archive',
