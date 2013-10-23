@@ -22,8 +22,8 @@ def parse_query_metadata(args):
             k = a.split('=', 1)
             if len(k) != 2:
                 sys.stderr.write(_(u"Metadata should have format key=value, "
-                                   u"key=type:value (eg. age=int:23) or"
-                                   u"key=type:req (eg. age=int:>21\n"))
+                                   u"key=type:value (eg. age=int:23) or "
+                                   u"key=type:req (eg. age=int:>21)\n"))
                 sys.exit(1)
             k, v = k
             if ':' in v:
@@ -51,8 +51,8 @@ def parse_query_metadata(args):
                 v = v.decode(locale.getpreferredencoding())
             if k in metadata:
                 if t != metadata[k]['type']:
-                    sys.stderr.write(_(u"Differing types for conditions on key"
-                                       u"{k}: {t1}, {t2}\n",
+                    sys.stderr.write(_(u"Differing types for conditions on "
+                                       u"key {k}: {t1}, {t2}\n",
                                        k=k, t1=metadata[k]['type'], t2=t))
                     sys.exit(1)
                 if req in metadata[k]:
