@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: file_archive 0.4\n"
 "Report-Msgid-Bugs-To: remirampin@gmail.com\n"
-"POT-Creation-Date: 2013-10-22 18:38-0400\n"
+"POT-Creation-Date: 2013-10-23 10:14-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,80 +17,80 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: po/../file_archive/main.py:24
+#: file_archive/main.py:24
 msgid ""
-"Metadata should have format key=value, key=type:value (eg. age=int:23) "
-"orkey=type:req (eg. age=int:>21\n"
+"Metadata should have format key=value, key=type:value (eg. age=int:23) or "
+"key=type:req (eg. age=int:>21)\n"
 msgstr ""
 
-#: po/../file_archive/main.py:42 po/../file_archive/main.py:93
+#: file_archive/main.py:42 file_archive/main.py:93
 #, python-brace-format
 msgid ""
 "Metadata has unknown type '{t}'! Only 'str' and 'int' are supported.\n"
 "If you meant a string with a ':', use 'str:mystring'"
 msgstr ""
 
-#: po/../file_archive/main.py:54
+#: file_archive/main.py:54
 #, python-brace-format
-msgid "Differing types for conditions on key{k}: {t1}, {t2}\n"
+msgid "Differing types for conditions on key {k}: {t1}, {t2}\n"
 msgstr ""
 
-#: po/../file_archive/main.py:59
+#: file_archive/main.py:59
 #, python-brace-format
 msgid "Multiple conditions {cond} on key {k}\n"
 msgstr ""
 
-#: po/../file_archive/main.py:76
+#: file_archive/main.py:76
 msgid ""
 "Metadata should have format key=value or key=type:value (eg. age=int:23)\n"
 msgstr ""
 
-#: po/../file_archive/main.py:108
+#: file_archive/main.py:108
 msgid "Missing filename\n"
 msgstr ""
 
-#: po/../file_archive/main.py:112
+#: file_archive/main.py:112
 #, python-brace-format
 msgid "Path does not exist: {path}\n"
 msgstr ""
 
-#: po/../file_archive/main.py:138 po/../file_archive/main.py:200
+#: file_archive/main.py:138 file_archive/main.py:200
 #, python-brace-format
 msgid "Unknown option: {opt}\n"
 msgstr ""
 
-#: po/../file_archive/main.py:208
+#: file_archive/main.py:208
 msgid "Hash not found\n"
 msgstr ""
 
-#: po/../file_archive/main.py:215
+#: file_archive/main.py:215
 msgid "No match found\n"
 msgstr ""
 
-#: po/../file_archive/main.py:222
+#: file_archive/main.py:222
 msgid "Warning: more matching files exist\n"
 msgstr ""
 
-#: po/../file_archive/main.py:235
+#: file_archive/main.py:235
 msgid "Error: match found but is a directory\n"
 msgstr ""
 
-#: po/../file_archive/main.py:267
+#: file_archive/main.py:267
 #, python-brace-format
 msgid ""
 "Error: not removing files unconditionally unless -f is given\n"
 "(command would have removed {nb} files)\n"
 msgstr ""
 
-#: po/../file_archive/main.py:282
+#: file_archive/main.py:282
 msgid "verify command accepts no argument\n"
 msgstr ""
 
-#: po/../file_archive/main.py:289
+#: file_archive/main.py:289
 msgid "view command accepts no argument\n"
 msgstr ""
 
-#: po/../file_archive/main.py:309
+#: file_archive/main.py:309
 #, python-brace-format
 msgid ""
 "usage: {bin} <store> create\n"
@@ -104,63 +104,63 @@ msgid ""
 "   or: {bin} <store> view\n"
 msgstr ""
 
-#: po/../file_archive/main.py:331
+#: file_archive/main.py:331
 #, python-brace-format
 msgid "Can't create store: {err}\n"
 msgstr ""
 
-#: po/../file_archive/main.py:338
+#: file_archive/main.py:338
 #, python-brace-format
 msgid "Invalid store: {err}\n"
 msgstr ""
 
-#: po/../file_archive/viewer.py:78
+#: file_archive/viewer.py:78
 msgid "file_archive viewer"
 msgstr ""
 
-#: po/../file_archive/viewer.py:88
+#: file_archive/viewer.py:88
 msgid "Enter query here"
 msgstr ""
 
-#: po/../file_archive/viewer.py:94
+#: file_archive/viewer.py:94
 msgid "Search"
 msgstr ""
 
-#: po/../file_archive/viewer.py:104
+#: file_archive/viewer.py:104
 msgid "Key"
 msgstr ""
 
-#: po/../file_archive/viewer.py:104
+#: file_archive/viewer.py:104
 msgid "Value"
 msgstr ""
 
-#: po/../file_archive/viewer.py:104
+#: file_archive/viewer.py:104
 msgid "Type"
 msgstr ""
 
-#: po/../file_archive/viewer.py:115
+#: file_archive/viewer.py:115
 msgid "Open"
 msgstr ""
 
-#: po/../file_archive/viewer.py:124
+#: file_archive/viewer.py:124
 msgid "Delete"
 msgstr ""
 
-#: po/../file_archive/viewer.py:161
+#: file_archive/viewer.py:161
 #, python-brace-format
 msgid "{h} not found"
 msgstr ""
 
-#: po/../file_archive/viewer.py:192
+#: file_archive/viewer.py:192
 #, python-brace-format
 msgid "... stripped after {nb} results..."
 msgstr ""
 
-#: po/../file_archive/viewer.py:228
+#: file_archive/viewer.py:228
 msgid "Are you sure?"
 msgstr ""
 
-#: po/../file_archive/viewer.py:229
+#: file_archive/viewer.py:229
 #, python-brace-format
 msgid "You are about to delete {num} entry from the store. Please confirm."
 msgid_plural ""
