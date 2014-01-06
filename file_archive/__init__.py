@@ -34,7 +34,7 @@ def copy_file(fileobj, destination):
             while chunk:
                 destobj.write(chunk)
                 chunk = fileobj.read(CHUNKSIZE)
-        except: # pragma: no coverage
+        except: # pragma: no cover
             os.remove(destination)
             raise
 
