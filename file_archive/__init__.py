@@ -12,16 +12,23 @@ __version__ = '0.4'
 
 CHUNKSIZE = 4096
 
+def BufferedReader(fp):
+    """Generator that gives out chunks of the file.
+    """
+    chunk = fp.read(CHUNKSIZE)
+    yield chunk
+    while len(chunk) == CHUNKSIZE:
+        chunk = fp.read(CHUNKSIZE)
+        yield chunk
+
 
 def hash_file(f):
     """Hashes a file to a 40 hex character SHA1.
     """
     h = sha1()
     h.update(b'file\n')
-    chunk = f.read(CHUNKSIZE)
-    while chunk:
+    for chunk in BufferedReader(f):
         h.update(chunk)
-        chunk = f.read(CHUNKSIZE)
     return h.hexdigest()
 
 
@@ -30,10 +37,8 @@ def copy_file(fileobj, destination):
     """
     with open(destination, 'wb') as destobj:
         try:
-            chunk = fileobj.read(CHUNKSIZE)
-            while chunk:
+            for chunk in BufferedReader(fileobj):
                 destobj.write(chunk)
-                chunk = fileobj.read(CHUNKSIZE)
         except: # pragma: no cover
             os.remove(destination)
             raise

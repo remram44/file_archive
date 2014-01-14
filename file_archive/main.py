@@ -3,7 +3,7 @@ import os
 import sys
 import warnings
 
-from file_archive import FileStore, CHUNKSIZE
+from file_archive import FileStore, copy_file
 from file_archive.compat import int_types, unicode_type, quote_str
 from file_archive.errors import UsageWarning
 from file_archive.trans import _
@@ -236,10 +236,8 @@ def cmd_print(store, args):
             sys.exit(2)
         fp = entry.open()
         try:
-            chunk = fp.read(CHUNKSIZE)
-            while chunk:
+            for chunk in BufferedReader(fp):
                 sys.stdout.write(chunk)
-                chunk = fp.read(CHUNKSIZE)
         finally:
             fp.close()
 
