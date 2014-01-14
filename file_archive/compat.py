@@ -1,3 +1,19 @@
+"""Python 2/3 compatibility symbols.
+
+isinstance() checks:
+ * Use string_types instead of 2's basestring
+ * Use int_types instead of 3's int
+
+sha1:
+ * Silently accepts unicode so long as it's ASCII
+
+quote_str:
+ * Version of 2's repr() that won't add a 'u' prefix (different versions of
+   Python put it or not)
+
+StringIO
+"""
+
 from abc import ABCMeta
 import hashlib
 
