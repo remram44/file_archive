@@ -1,6 +1,7 @@
 import locale
 import os
 import sys
+import tempfile
 import warnings
 
 from file_archive import FileStore, copy_file
@@ -116,6 +117,22 @@ def cmd_add(store, args):
         entry = store.add_directory(filename, metadata)
     else:
         entry = store.add_file(filename, metadata)
+    sys.stdout.write('%s\n' % entry['hash'])
+
+
+def cmd_write(store, args):
+    """Write command.
+
+    write [key1=value1] [...]
+    """
+    metadata = parse_new_metadata(args)
+    fd, filename = tempfile.mkstemp()
+    os.close(fd)
+    try:
+        copy_file(sys.stdin, filename)
+        entry = store.add_file(filename, metadata)
+    finally:
+        os.remove(filename)
     sys.stdout.write('%s\n' % entry['hash'])
 
 
@@ -292,6 +309,7 @@ def cmd_view(store, args):
 
 commands = {
         'add': cmd_add,
+        'write': cmd_write,
         'query': cmd_query,
         'print': cmd_print,
         'remove': cmd_remove,
@@ -306,6 +324,7 @@ def main(args):
     usage = _(
             u"usage: {bin} <store> create\n"
             u"   or: {bin} <store> add <filename> [key1=value1] [...]\n"
+            u"   or: {bin} <store> write [key1=value1] [...]\n"
             u"   or: {bin} <store> query [-d] [-t] [key1=value1] [...]\n"
             u"   or: {bin} <store> print [-m] [-t] <filehash> [...]\n"
             u"   or: {bin} <store> print [-m] [-t] [key1=value1] [...]\n"
