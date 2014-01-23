@@ -158,7 +158,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
             try:
                 entries = [self.store.get(h)]
             except KeyError:
-                error = _(u"{h} not found", h=h)
+                error = _(u"hash '{h}' not found", h=h)
 
         else:
             try:
@@ -174,6 +174,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
             w = QtGui.QTreeWidgetItem([error])
             w.setForeground(0, QtGui.QColor(255, 0, 0))
             self._result_tree.addTopLevelItem(w)
+            self._result_tree.setFirstItemColumnSpanned(w, True)
         else:
             for i, entry in enumerate(entries):
                 file_item = FileItem(entry['hash'])
@@ -199,6 +200,10 @@ class StoreViewerWindow(QtGui.QMainWindow):
                     self._result_tree.setFirstItemColumnSpanned(last_item,
                                                                 True)
                     break
+            if self._result_tree.topLevelItemCount() == 0:
+                w = QtGui.QTreeWidgetItem([_(u"No matches")])
+                self._result_tree.addTopLevelItem(w)
+                self._result_tree.setFirstItemColumnSpanned(w, True)
             self._result_tree.expandAll()
 
         self._set_needs_refresh(False)
