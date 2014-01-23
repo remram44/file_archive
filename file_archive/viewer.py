@@ -56,7 +56,9 @@ class SearchError(Exception):
 
 
 class FileItem(QtGui.QTreeWidgetItem):
-    def __init__(self, filehash):
+    def __init__(self, entry):
+        self.entry = entry
+        filehash = entry['hash']
         QtGui.QTreeWidgetItem.__init__(self, [filehash])
         self.hash = filehash
 
@@ -73,9 +75,11 @@ class MetadataItem(FileItem):
 
 
 class StoreViewerWindow(QtGui.QMainWindow):
+    WINDOW_TITLE = _(u"file_archive viewer")
+
     def __init__(self, store):
         QtGui.QMainWindow.__init__(self)
-        self.setWindowTitle(_(u"file_archive viewer"))
+        self.setWindowTitle(self.WINDOW_TITLE)
 
         self.store = store
 
@@ -107,25 +111,10 @@ class StoreViewerWindow(QtGui.QMainWindow):
 
         # Buttons, enabled/disabled when the selection changes
         buttons = QtGui.QVBoxLayout()
-        self._buttons = []
+        self._buttons = self._create_buttons()
 
-        # Open button; uses the system to choose the program to open with
-        # (on Windows, might ask you what to use every time because of filename
-        # scheme)
-        open_button = QtGui.QPushButton(_(u"Open"))
-        if openfile is not None:
-            open_button.clicked.connect(self._openfile)
-            self._buttons.append(('single', open_button))
-        else:
-            open_button.setEnabled(False)
-        buttons.addWidget(open_button)
-
-        # Delete button, removes what's selected (with confirmation)
-        remove_button = QtGui.QPushButton(_(u"Delete"))
-        remove_button.clicked.connect(self._delete)
-        self._buttons.append(('multi', remove_button))
-        buttons.addWidget(remove_button)
-
+        for name, button in self._buttons:
+            buttons.addWidget(button)
         self._selection_changed()
         results.addLayout(buttons)
 
@@ -136,6 +125,26 @@ class StoreViewerWindow(QtGui.QMainWindow):
         widget = QtGui.QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)
+
+    def _create_buttons(self):
+        buttons = []
+
+        # Open button; uses the system to choose the program to open with
+        # (on Windows, might ask you what to use every time because of filename
+        # scheme)
+        open_button = QtGui.QPushButton(_(u"Open"))
+        if openfile is not None:
+            open_button.clicked.connect(self._openfile)
+            buttons.append(('single', open_button))
+        else:
+            open_button.setEnabled(False)
+
+        # Delete button, removes what's selected (with confirmation)
+        remove_button = QtGui.QPushButton(_(u"Delete"))
+        remove_button.clicked.connect(self._delete)
+        buttons.append(('multi', remove_button))
+
+        return buttons
 
     def _set_needs_refresh(self, needs=True):
         if needs == self._needs_refresh:
@@ -177,7 +186,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
             self._result_tree.setFirstItemColumnSpanned(w, True)
         else:
             for i, entry in enumerate(entries):
-                file_item = FileItem(entry['hash'])
+                file_item = FileItem(entry)
                 f = file_item.font(0)
                 f.setBold(True)
                 file_item.setFont(0, f)
@@ -215,7 +224,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
                 button.setEnabled(
                         len(items) == 1 and
                         isinstance(items[0], FileItem))
-            else:
+            elif t == 'multi':
                 button.setEnabled(bool(items) and
                                   all(isinstance(i, FileItem) for i in items))
 
