@@ -163,7 +163,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
         else:
             try:
                 conditions = parse_expression(query)
-            except ValueError as e:
+            except tdparser.Error as e:
                 error = e.args[0]
             else:
                 entries = self.store.query(conditions)
