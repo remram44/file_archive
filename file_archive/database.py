@@ -191,14 +191,15 @@ class MetadataStore(object):
             for i, key, cond, prms in conditems:
                 hquery += '''
                         INNER JOIN metadata i{i} ON i0.hash = i{i}.hash
-                            AND i{i}.mkey = :key{i} AND {cond}
-                        '''.format(i=i, cond=cond)
+                            AND i{i}.mkey = :key{i} {cond}
+                        '''.format(i=i, cond='AND ' + cond if cond else '')
                 params['key%d' % (i)] = key
                 params.update(prms)
             hquery += '''
-                    WHERE i0.mkey = :key0 AND {cond}
+                    WHERE i0.mkey = :key0 {cond}
                     {limit}
-                    '''.format(cond=cond0, limit=limit)
+                    '''.format(cond='AND ' + cond0 if cond0 else '',
+                               limit=limit)
 
         # And we put that in the query
         rows = cur.execute('''
@@ -249,6 +250,8 @@ class MetadataStore(object):
                     conds.append('{var} > {val}'.format(var=var, val=val))
                 else:
                     raise ValueError("Unsupported operation %r" % k)
+            if not conds:
+                conds.append('{var} IS NOT NULL'.format(var=var))
             yield (i,
                    key,
                    ' AND '.join(conds),
