@@ -3,13 +3,13 @@
 # This file is distributed under the same license as the file_archive package.
 # 
 # Translators:
-# Rémi Rampin <remirampin@gmail.com>, 2013
+# Rémi Rampin <remirampin@gmail.com>, 2013-2014
 msgid ""
 msgstr ""
 "Project-Id-Version: file_archive 0.4\n"
 "Report-Msgid-Bugs-To: remirampin@gmail.com\n"
-"POT-Creation-Date: 2013-10-23 10:14-0400\n"
-"PO-Revision-Date: 2013-10-23 14:19+0000\n"
+"POT-Creation-Date: 2014-01-23 14:42-0500\n"
+"PO-Revision-Date: 2014-01-24 15:47+0000\n"
 "Last-Translator: Rémi Rampin <remirampin@gmail.com>\n"
 "Language-Team: French (France) (http://www.transifex.com/projects/p/file_archive/language/fr_FR/)\n"
 "MIME-Version: 1.0\n"
@@ -18,84 +18,85 @@ msgstr ""
 "Language: fr_FR\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: file_archive/main.py:24
+#: file_archive/main.py:25
 msgid ""
 "Metadata should have format key=value, key=type:value (eg. age=int:23) or "
 "key=type:req (eg. age=int:>21)\n"
 msgstr "Les métadonnées doivent être dans le format clef=valeur, clef=type:valeur (ex age=int:23) ou clef=type:requête (ex age=int:>18)\n"
 
-#: file_archive/main.py:42 file_archive/main.py:93
+#: file_archive/main.py:43 file_archive/main.py:94
 #, python-brace-format
 msgid ""
 "Metadata has unknown type '{t}'! Only 'str' and 'int' are supported.\n"
 "If you meant a string with a ':', use 'str:mystring'"
 msgstr "Une métadonnée a un type inconnu '{t}' ! Seuls \"str\" et \"int\" sont supportés.\nSi vous vouliez une chaîne contenant un \":\", utilisez \"str:chaine\"."
 
-#: file_archive/main.py:54
+#: file_archive/main.py:55
 #, python-brace-format
 msgid "Differing types for conditions on key {k}: {t1}, {t2}\n"
 msgstr "Types différents pour les conditions sur la clef {k} : {t1}, {t2}\n"
 
-#: file_archive/main.py:59
+#: file_archive/main.py:60
 #, python-brace-format
 msgid "Multiple conditions {cond} on key {k}\n"
 msgstr "Plusieurs conditions {cond} sur la clef {k}\n"
 
-#: file_archive/main.py:76
+#: file_archive/main.py:77
 msgid ""
 "Metadata should have format key=value or key=type:value (eg. age=int:23)\n"
 msgstr "Les métadonnées doivent être dans le format clef=valeur ou clef=type:valeur (ex age=int:23)\n"
 
-#: file_archive/main.py:108
+#: file_archive/main.py:109
 msgid "Missing filename\n"
 msgstr "Nom de fichier manquant\n"
 
-#: file_archive/main.py:112
+#: file_archive/main.py:113
 #, python-brace-format
 msgid "Path does not exist: {path}\n"
 msgstr "Le nom de fichier n'existe pas : {path}\n"
 
-#: file_archive/main.py:138 file_archive/main.py:200
+#: file_archive/main.py:155 file_archive/main.py:217
 #, python-brace-format
 msgid "Unknown option: {opt}\n"
 msgstr "Option inconnue : {opt}\n"
 
-#: file_archive/main.py:208
+#: file_archive/main.py:225
 msgid "Hash not found\n"
 msgstr "Hash introuvable\n"
 
-#: file_archive/main.py:215
+#: file_archive/main.py:232
 msgid "No match found\n"
 msgstr "Aucune correspondance\n"
 
-#: file_archive/main.py:222
+#: file_archive/main.py:239
 msgid "Warning: more matching files exist\n"
 msgstr "Attention : il y a plusieurs fichiers correspondant\n"
 
-#: file_archive/main.py:235
+#: file_archive/main.py:252
 msgid "Error: match found but is a directory\n"
 msgstr "Erreur : correspondance trouvée mais c'est un dossier\n"
 
-#: file_archive/main.py:267
+#: file_archive/main.py:282
 #, python-brace-format
 msgid ""
 "Error: not removing files unconditionally unless -f is given\n"
 "(command would have removed {nb} files)\n"
 msgstr "Erreur : pas de suppression inconditionnelle sauf si -f est passé\n(la commande aurait supprimé {nb} fichiers)\n"
 
-#: file_archive/main.py:282
+#: file_archive/main.py:297
 msgid "verify command accepts no argument\n"
 msgstr "La commande verify n'accepte aucun paramètre\n"
 
-#: file_archive/main.py:289
+#: file_archive/main.py:304
 msgid "view command accepts no argument\n"
 msgstr "La commande view n'accepte aucun paramètre\n"
 
-#: file_archive/main.py:309
+#: file_archive/main.py:325
 #, python-brace-format
 msgid ""
 "usage: {bin} <store> create\n"
 "   or: {bin} <store> add <filename> [key1=value1] [...]\n"
+"   or: {bin} <store> write [key1=value1] [...]\n"
 "   or: {bin} <store> query [-d] [-t] [key1=value1] [...]\n"
 "   or: {bin} <store> print [-m] [-t] <filehash> [...]\n"
 "   or: {bin} <store> print [-m] [-t] [key1=value1] [...]\n"
@@ -103,14 +104,14 @@ msgid ""
 "   or: {bin} <store> remove [-f] <key1=value1> [...]\n"
 "   or: {bin} <store> verify\n"
 "   or: {bin} <store> view\n"
-msgstr "utilisation : {bin} <dépôt> create\n   or: {bin} <dépôt> add <fichier> [clef1=valeur1] [...]\n   or: {bin} <dépôt> query [-d] [-t] [key1=valeur1] [...]\n   or: {bin} <dépôt> print [-m] [-t] <hash> [...]\n   or: {bin} <dépôt> print [-m] [-t] [clef1=valeur1] [...]\n   or: {bin} <dépôt> remove [-f] <hash>\n   or: {bin} <dépôt> remove [-f] <clef1=valeur1> [...]\n   or: {bin} <dépôt> verify\n   or: {bin} <dépôt> view\n"
+msgstr "utilisation : {bin} <dépôt> create\n   ou: {bin} <dépôt> add <fichier> [clef1=valeur1] [...]\n   ou: {bin} <dépôt> write [clef1=valeur1] [...]\n   ou: {bin} <dépôt> query [-d] [-t] [clef1=valeur1] [...]\n   ou: {bin} <dépôt> print [-m] [-t] <hash> [...]\n   ou: {bin} <dépôt> print [-m] [-t] [clef1=valeur1] [...]\n   ou: {bin} <dépôt> remove [-f] <hash>\n   ou: {bin} <dépôt> remove [-f] <clef1=valeur1> [...]\n   ou: {bin} <dépôt> verify\n   ou: {bin} <dépôt> view\n"
 
-#: file_archive/main.py:331
+#: file_archive/main.py:348
 #, python-brace-format
 msgid "Can't create store: {err}\n"
 msgstr "Impossible de créer le dépôt  {err}\n"
 
-#: file_archive/main.py:338
+#: file_archive/main.py:355
 #, python-brace-format
 msgid "Invalid store: {err}\n"
 msgstr "Dépôt invalide : {err}\n"
@@ -119,49 +120,53 @@ msgstr "Dépôt invalide : {err}\n"
 msgid "file_archive viewer"
 msgstr "Explorateur de file_archive"
 
-#: file_archive/viewer.py:88
+#: file_archive/viewer.py:92
 msgid "Enter query here"
 msgstr "Entrez la requête ici"
 
-#: file_archive/viewer.py:94
+#: file_archive/viewer.py:98
 msgid "Search"
 msgstr "Rechercher"
 
-#: file_archive/viewer.py:104
+#: file_archive/viewer.py:108
 msgid "Key"
 msgstr "Clef"
 
-#: file_archive/viewer.py:104
+#: file_archive/viewer.py:108
 msgid "Value"
 msgstr "Valeur"
 
-#: file_archive/viewer.py:104
+#: file_archive/viewer.py:108
 msgid "Type"
 msgstr "Type"
 
-#: file_archive/viewer.py:115
+#: file_archive/viewer.py:135
 msgid "Open"
 msgstr "Ouvrir"
 
-#: file_archive/viewer.py:124
+#: file_archive/viewer.py:143
 msgid "Delete"
 msgstr "Supprimer"
 
-#: file_archive/viewer.py:161
+#: file_archive/viewer.py:170
 #, python-brace-format
-msgid "{h} not found"
-msgstr "{h} introuvable"
+msgid "hash '{h}' not found"
+msgstr "hash \"{h}\" introuvable"
 
-#: file_archive/viewer.py:192
+#: file_archive/viewer.py:202
 #, python-brace-format
 msgid "... stripped after {nb} results..."
 msgstr "... limité à {nb} résultats..."
 
-#: file_archive/viewer.py:228
+#: file_archive/viewer.py:213
+msgid "No matches"
+msgstr "Aucune correspondance"
+
+#: file_archive/viewer.py:242
 msgid "Are you sure?"
 msgstr "Êtes-vous certain ?"
 
-#: file_archive/viewer.py:229
+#: file_archive/viewer.py:243
 #, python-brace-format
 msgid "You are about to delete {num} entry from the store. Please confirm."
 msgid_plural ""
