@@ -33,9 +33,6 @@ from .parser import parse_expression
 from .trans import _, _n
 
 
-MAX_RESULTS = 100
-
-
 system = platform.system().lower()
 if system == 'windows':
     def openfile(filename):
@@ -76,6 +73,8 @@ class MetadataItem(FileItem):
 
 class StoreViewerWindow(QtGui.QMainWindow):
     WINDOW_TITLE = _(u"file_archive viewer")
+
+    MAX_RESULTS = 100
 
     def __init__(self, store):
         QtGui.QMainWindow.__init__(self)
@@ -156,6 +155,9 @@ class StoreViewerWindow(QtGui.QMainWindow):
             self._searchbutton.setStyleSheet('')
         self._needs_refresh = needs
 
+    def _alter_search_conditions(self, conditions):
+        return conditions
+
     def _search(self):
         error = None
 
@@ -175,6 +177,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
             except tdparser.Error as e:
                 error = e.args[0]
             else:
+                conditions = self._alter_search_conditions(conditions)
                 entries = self.store.query(conditions)
 
         self._result_tree.clear()
@@ -197,10 +200,10 @@ class StoreViewerWindow(QtGui.QMainWindow):
                         continue
                     file_item.addChild(MetadataItem(entry['hash'], k, v))
 
-                if i >= MAX_RESULTS:
+                if i >= self.MAX_RESULTS:
                     last_item = QtGui.QTreeWidgetItem(
                             [_(u"... stripped after {nb} results...",
-                               nb=MAX_RESULTS)])
+                               nb=self.MAX_RESULTS)])
                     f = last_item.font(0)
                     f.setBold(True)
                     f.setItalic(True)
