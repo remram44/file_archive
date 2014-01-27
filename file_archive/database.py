@@ -214,12 +214,16 @@ class MetadataStore(object):
 
     def _make_conditions(self, conditions):
         for i, (key, value) in enumerate(conditions.items()):
+            t = None
             if isinstance(value, string_types):
                 t = 'str'
                 req = [('equal', value)]
             elif isinstance(value, int_types):
                 t = 'int'
                 req = [('equal', value)]
+            elif isinstance(value, dict) and not value:
+                # Empty dict: key exist with any type or value
+                req = value
             elif isinstance(value, dict):
                 req = dict(value)
                 try:
@@ -236,22 +240,29 @@ class MetadataStore(object):
                         "format:\n"
                         "{'type': 'int/str/...', <condition>}")
 
-            var = 'i{i}.mvalue_{t}'.format(i=i, t=t)
             conds = []
             params = {}
-            for j, (k, v) in enumerate(req):
-                val = ':val{i}_{j}'.format(i=i, j=j)
-                params['val%d_%d' % (i, j)] = v
-                if k == 'equal':
-                    conds.append('{var} = {val}'.format(var=var, val=val))
-                elif t == 'int' and k == 'lt':
-                    conds.append('{var} < {val}'.format(var=var, val=val))
-                elif t == 'int' and k == 'gt':
-                    conds.append('{var} > {val}'.format(var=var, val=val))
-                else:
-                    raise ValueError("Unsupported operation %r" % k)
-            if not conds:
-                conds.append('{var} IS NOT NULL'.format(var=var))
+            if req:
+                var = 'i{i}.mvalue_{t}'.format(i=i, t=t)
+                for j, (k, v) in enumerate(req):
+                    val = ':val{i}_{j}'.format(i=i, j=j)
+                    params['val%d_%d' % (i, j)] = v
+                    if k == 'equal':
+                        conds.append('{var} = {val}'.format(var=var, val=val))
+                    elif t == 'int' and k == 'lt':
+                        conds.append('{var} < {val}'.format(var=var, val=val))
+                    elif t == 'int' and k == 'gt':
+                        conds.append('{var} > {val}'.format(var=var, val=val))
+                    else:
+                        raise ValueError("Unsupported operation %r" % k)
+            else:
+                # No condition
+                if t is not None:
+                    # Just check type
+                    conds = ['{var} IS NOT NULL'.format(
+                             var='i{i}.mvalue_{t}'.format(i=i, t=t))]
+                #else:
+                    # Check nothing
             yield (i,
                    key,
                    ' AND '.join(conds),
