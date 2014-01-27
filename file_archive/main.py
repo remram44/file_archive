@@ -4,7 +4,7 @@ import sys
 import tempfile
 import warnings
 
-from file_archive import FileStore, copy_file
+from file_archive import FileStore, copy_file, BufferedReader
 from file_archive.compat import int_types, unicode_type, quote_str
 from file_archive.errors import UsageWarning
 from file_archive.trans import _
