@@ -1,6 +1,7 @@
 file_archive: A file store with searchable metadata
 
 [![Build Status](https://travis-ci.org/remram44/file_archive.png?branch=master)](https://travis-ci.org/remram44/file_archive)
+[![Coverage Status](https://coveralls.io/repos/remram44/file_archive/badge.png?branch=master)](https://coveralls.io/r/remram44/file_archive?branch=master)
 
 # Introduction
 
