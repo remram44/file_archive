@@ -9,8 +9,7 @@ try:
 except ImportError:
     import unittest
 
-from file_archive import FileStore, relativize_link
-from file_archive.errors import CreationError, InvalidStore, UsageWarning
+import file_archive
 
 from .common import temp_dir, temp_warning_filter
 
@@ -25,22 +24,25 @@ class TestInternals(unittest.TestCase):
     @requires_symlink
     def test_relativize_link(self):
         with temp_dir() as t:
-            d = os.path.join(t, 'inner')
+            relativize_link = file_archive.relativize_link
+            join = os.path.join
+
+            d = join(t, 'inner')
             os.mkdir(d)
-            i = os.path.join(d, 'dirI')
+            i = join(d, 'dirI')
             os.mkdir(i)
-            j = os.path.join(d, 'dirJ')
+            j = join(d, 'dirJ')
             os.mkdir(j)
-            os.symlink(os.path.join(d, 'file'), os.path.join(i, 'link1'))
-            os.symlink('../file', os.path.join(i, 'link1r'))
-            os.symlink(os.path.join(j, 'file'), os.path.join(i, 'link2'))
-            os.symlink('../dirJ/file', os.path.join(i, 'link2r'))
-            os.symlink(os.path.join(j, 'file'), os.path.join(d, 'link3'))
-            os.symlink('dirJ/file', os.path.join(d, 'link3r'))
-            os.symlink(os.path.join(t, 'file'), os.path.join(i, 'link4'))
-            os.symlink('../../file', os.path.join(i, 'link4r'))
-            os.symlink(os.path.join(t, 'file'), os.path.join(d, 'link5'))
-            os.symlink('../file', os.path.join(d, 'link5r'))
+            os.symlink(join(d, 'file'), join(i, 'link1'))
+            os.symlink('../file', join(i, 'link1r'))
+            os.symlink(join(j, 'file'), join(i, 'link2'))
+            os.symlink('../dirJ/file', join(i, 'link2r'))
+            os.symlink(join(j, 'file'), join(d, 'link3'))
+            os.symlink('dirJ/file', join(d, 'link3r'))
+            os.symlink(join(t, 'file'), join(i, 'link4'))
+            os.symlink('../../file', join(i, 'link4r'))
+            os.symlink(join(t, 'file'), join(d, 'link5'))
+            os.symlink('../file', join(d, 'link5r'))
 
             def do_test(p, expected, rel=False):
                 r = relativize_link(p, d)
@@ -53,15 +55,15 @@ class TestInternals(unittest.TestCase):
                 if not rel:
                     do_test(p + 'r', expected, True)
 
-            self.assertEqual(relativize_link(os.path.join(i, 'link1'), d),
+            self.assertEqual(relativize_link(join(i, 'link1'), d),
                              '../file')
-            self.assertEqual(relativize_link(os.path.join(i, 'link2'), d),
+            self.assertEqual(relativize_link(join(i, 'link2'), d),
                              '../dirJ/file')
-            self.assertEqual(relativize_link(os.path.join(d, 'link3'), d),
+            self.assertEqual(relativize_link(join(d, 'link3'), d),
                              'dirJ/file')
-            self.assertEqual(relativize_link(os.path.join(i, 'link4'), d),
+            self.assertEqual(relativize_link(join(i, 'link4'), d),
                              None)
-            self.assertEqual(relativize_link(os.path.join(d, 'link5'), d),
+            self.assertEqual(relativize_link(join(d, 'link5'), d),
                              None)
 
 
@@ -70,39 +72,39 @@ class TestCreate(unittest.TestCase):
     """
     def test_create(self):
         with temp_dir(False) as d:
-            FileStore.create_store(d)
+            file_archive.FileStore.create_store(d)
             self.assertTrue(os.path.isdir(d))
             self.assertTrue(os.path.isfile(os.path.join(d, 'database')))
         with temp_dir(True) as d:
-            FileStore.create_store(d)
+            file_archive.FileStore.create_store(d)
             self.assertTrue(os.path.isfile(os.path.join(d, 'database')))
 
     def test_create_nonempty(self):
         with temp_dir() as d:
             with open(os.path.join(d, 'somefile'), 'wb') as fp:
                 fp.write(b"I'm not empty\n")
-            with self.assertRaises(CreationError):
-                FileStore.create_store(d)
+            with self.assertRaises(file_archive.CreationError):
+                file_archive.FileStore.create_store(d)
         with temp_dir() as d:
-            FileStore.create_store(d)
-            with self.assertRaises(CreationError):
-                FileStore.create_store(d)
+            file_archive.FileStore.create_store(d)
+            with self.assertRaises(file_archive.CreationError):
+                file_archive.FileStore.create_store(d)
 
 
 class TestOpen(unittest.TestCase):
     def test_open_invalid(self):
         with temp_dir() as d:
-            with self.assertRaises(InvalidStore):
-                FileStore(d)
+            with self.assertRaises(file_archive.InvalidStore):
+                file_archive.FileStore(d)
         with temp_dir() as d:
             os.mkdir(os.path.join(d, 'objects'))
-            with self.assertRaises(InvalidStore):
-                FileStore(d)
+            with self.assertRaises(file_archive.InvalidStore):
+                file_archive.FileStore(d)
         with temp_dir() as d:
             with open(os.path.join(d, 'database'), 'wb'):
                 pass
-            with self.assertRaises(InvalidStore):
-                FileStore(d)
+            with self.assertRaises(file_archive.InvalidStore):
+                file_archive.FileStore(d)
 
 
 class TestStore(unittest.TestCase):
@@ -110,8 +112,8 @@ class TestStore(unittest.TestCase):
     """
     def setUp(self):
         self.path = tempfile.mkdtemp(prefix='test_file_archive_')
-        FileStore.create_store(self.path)
-        self.store = FileStore(self.path)
+        file_archive.FileStore.create_store(self.path)
+        self.store = file_archive.FileStore(self.path)
         testfiles = os.path.join(os.path.dirname(__file__), 'testfiles')
         self.t = lambda f: os.path.join(testfiles, f)
 
@@ -287,7 +289,7 @@ class TestStore(unittest.TestCase):
     def test_external_symlink(self):
         def test_warning(warns):
             self.assertEqual(len(warns), 1)
-            self.assertIs(type(warns[0].message), UsageWarning)
+            self.assertIs(type(warns[0].message), file_archive.UsageWarning)
             self.assertTrue(warns[0].message.args[0].endswith(
                     "is a symbolic link, using target file instead"))
         with temp_dir() as d:
@@ -307,6 +309,6 @@ class TestStore(unittest.TestCase):
                 warnings.filterwarnings(
                         'ignore',
                         '.*is a symbolic link, recursing on target directory$',
-                        UsageWarning)
+                        file_archive.UsageWarning)
                 with self.assertRaises(ValueError):
                     self.store.add_directory(d, {'some': 'data'})
