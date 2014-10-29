@@ -18,9 +18,13 @@ def BufferedReader(fp):
     """Generator that gives out chunks of the file.
     """
     chunk = fp.read(CHUNKSIZE)
+    if not chunk:
+        return
     yield chunk
     while len(chunk) == CHUNKSIZE:
         chunk = fp.read(CHUNKSIZE)
+        if not chunk:
+            return
         yield chunk
 
 

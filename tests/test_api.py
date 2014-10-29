@@ -10,6 +10,7 @@ except ImportError:
     import unittest
 
 import file_archive
+from file_archive.compat import StringIO
 
 from .common import temp_dir, temp_warning_filter
 
@@ -21,6 +22,22 @@ requires_symlink = unittest.skipIf(platform.system() == 'Windows',
 class TestInternals(unittest.TestCase):
     """Tests internal functions.
     """
+    def test_buffered_reader(self):
+        def chunks(s):
+            return list(file_archive.BufferedReader(StringIO(s)))
+
+        old_chunk_size = file_archive.CHUNKSIZE
+        file_archive.CHUNKSIZE = 4
+        try:
+            self.assertEqual(chunks(''), [])
+            self.assertEqual(chunks('a'), ['a'])
+            self.assertEqual(chunks('abcd'), ['abcd'])
+            self.assertEqual(chunks('abcde'), ['abcd', 'e'])
+            self.assertEqual(chunks('abcdefghijkl'), ['abcd', 'efgh', 'ijkl'])
+            self.assertEqual(chunks('abcdefghij'), ['abcd', 'efgh', 'ij'])
+        finally:
+            file_archive.CHUNKSIZE = old_chunk_size
+
     @requires_symlink
     def test_relativize_link(self):
         with temp_dir() as t:
