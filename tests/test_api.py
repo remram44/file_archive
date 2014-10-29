@@ -44,17 +44,6 @@ class TestInternals(unittest.TestCase):
             os.symlink(join(t, 'file'), join(d, 'link5'))
             os.symlink('../file', join(d, 'link5r'))
 
-            def do_test(p, expected, rel=False):
-                r = relativize_link(p, d)
-                if r is None:
-                    self.assertIsNone(expected)
-                else:
-                    self.assertIsNotNone(expected)
-                    self.assertEqual(os.readlink(p), expected)
-                    self.assertEqual(r, expected)
-                if not rel:
-                    do_test(p + 'r', expected, True)
-
             self.assertEqual(relativize_link(join(i, 'link1'), d),
                              '../file')
             self.assertEqual(relativize_link(join(i, 'link2'), d),
