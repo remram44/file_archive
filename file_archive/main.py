@@ -221,7 +221,7 @@ def cmd_print(store, args):
     if h is not None:
         try:
             entry = store.get(h)
-        except:
+        except KeyError:
             sys.stderr.write(_(u"Hash not found\n"))
             sys.exit(2)
     else:

@@ -196,7 +196,7 @@ class MetadataStore(object):
                         INNER JOIN metadata i{i} ON i0.hash = i{i}.hash
                             AND i{i}.mkey = :key{i} {cond}
                         '''.format(i=i, cond='AND ' + cond if cond else '')
-                params['key%d' % (i)] = key
+                params['key%d' % i] = key
                 params.update(prms)
             hquery += '''
                     WHERE i0.mkey = :key0 {cond}
@@ -258,14 +258,10 @@ class MetadataStore(object):
                         conds.append('{var} > {val}'.format(var=var, val=val))
                     else:
                         raise ValueError("Unsupported operation %r" % k)
-            else:
-                # No condition
-                if t is not None:
-                    # Just check type
-                    conds = ['{var} IS NOT NULL'.format(
-                             var='i{i}.mvalue_{t}'.format(i=i, t=t))]
-                #else:
-                    # Check nothing
+            elif t is not None:
+                # Just check type
+                conds = ['{var} IS NOT NULL'.format(
+                         var='i{i}.mvalue_{t}'.format(i=i, t=t))]
             yield (i,
                    key,
                    ' AND '.join(conds),

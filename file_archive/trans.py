@@ -7,8 +7,8 @@ __all__ = ['setup_translation', '_', '_n']
 
 
 # Entry points should be using:
-#locale.setlocale(locale.LC_ALL, '')
-#file_archive.trans.setup_translation()
+#   locale.setlocale(locale.LC_ALL, '')
+#   file_archive.trans.setup_translation()
 
 
 if str == bytes:

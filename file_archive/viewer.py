@@ -15,7 +15,7 @@ try:
         except ValueError:
             pass
 
-    from PyQt4 import QtCore, QtGui
+    from PyQt4 import QtGui
 except ImportError:
     sys.stderr.write("PyQt4 is required by 'file_archive view'\n")
     sys.exit(3)
