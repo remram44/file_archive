@@ -1,3 +1,6 @@
+__all__ = ['Error', 'InvalidStore', 'CreationError', 'UsageWarning']
+
+
 class Error(Exception):
     """Base class for this package's exceptions.
     """

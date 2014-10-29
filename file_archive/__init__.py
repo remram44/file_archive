@@ -9,6 +9,8 @@ from .errors import CreationError, InvalidStore, UsageWarning
 
 __version__ = '0.4'
 
+__all__ = ['FileStore']
+
 
 CHUNKSIZE = 4096
 

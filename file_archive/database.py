@@ -4,6 +4,9 @@ from .compat import string_types, int_types
 from .errors import Error, CreationError, InvalidStore
 
 
+__all__ = ['MetadataStore']
+
+
 class MetadataStore(object):
     """The database holding metadata associated to SHA1 hashs.
     """

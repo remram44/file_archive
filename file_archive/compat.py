@@ -18,6 +18,10 @@ from abc import ABCMeta
 import hashlib
 
 
+__all__ = ['string_types', 'int_types', 'sha1', 'unicode_type', 'quote_str',
+           'StringIO']
+
+
 try:
     string_types = basestring
 except NameError:

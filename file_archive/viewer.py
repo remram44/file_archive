@@ -47,6 +47,9 @@ else:
     openfile = None
 
 
+__all__ = ['StoreViewerWindow', 'run_viewer']
+
+
 class SearchError(Exception):
     """Error while querying the file store.
     """

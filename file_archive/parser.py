@@ -1,6 +1,10 @@
 from tdparser import Lexer, Parser, Token, ParserError
 from tdparser.topdown import EndToken
 
+
+__all__ = ['parse_expression', 'parse_expressions']
+
+
 lexer = Lexer()
 
 
