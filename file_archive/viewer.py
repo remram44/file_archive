@@ -7,8 +7,7 @@ try:
 
     api2_classes = [
             'QData', 'QDateTime', 'QString', 'QTextStream',
-            'QTime', 'QUrl', 'QVariant',
-            ]
+            'QTime', 'QUrl', 'QVariant']
     for cl in api2_classes:
         try:
             sip.setapi(cl, 2)
@@ -68,7 +67,7 @@ class MetadataItem(FileItem):
         if isinstance(value, int_types):
             t = 'int'
             value = '%d' % value
-        else: # isinstance(v, string_types):
+        else:  # isinstance(v, string_types):
             t = 'str'
         QtGui.QTreeWidgetItem.__init__(self, [key, value, t])
         self.hash = filehash

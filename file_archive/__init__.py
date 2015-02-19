@@ -14,6 +14,7 @@ __all__ = ['FileStore']
 
 CHUNKSIZE = 4096
 
+
 def BufferedReader(fp):
     """Generator that gives out chunks of the file.
     """
@@ -45,7 +46,7 @@ def copy_file(fileobj, destination):
         try:
             for chunk in BufferedReader(fileobj):
                 destobj.write(chunk)
-        except: # pragma: no cover
+        except:  # pragma: no cover
             os.remove(destination)
             raise
 
@@ -122,7 +123,7 @@ def copy_directory(sourcepath, destination, root=None):
             else:
                 with open(pf, 'rb') as fd:
                     copy_file(fd, df)
-    except: # pragma: no cover
+    except:  # pragma: no cover
         shutil.rmtree(destination)
         raise
 
@@ -185,7 +186,7 @@ class FileStore(object):
             if not exists:
                 os.mkdir(path)
             os.mkdir(os.path.join(path, 'objects'))
-        except OSError as e: # pragma: no cover
+        except OSError as e:  # pragma: no cover
             raise CreationError("Could not create directories: %s: %s" % (
                     e.__class__.__name__, e.message))
         MetadataStore.create_db(os.path.join(path, 'database'))
@@ -303,7 +304,7 @@ class FileStore(object):
     def get(self, objecthash):
         """Gets an Entry from a hash.
         """
-        infos = self.metadata.get(objecthash) # Might raise KeyError
+        infos = self.metadata.get(objecthash)  # Might raise KeyError
         return Entry(self, infos)
 
     def query_one(self, conditions):

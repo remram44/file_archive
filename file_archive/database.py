@@ -55,7 +55,7 @@ class MetadataStore(object):
 
             conn.commit()
             conn.close()
-        except sqlite3.Error as e: # pragma: no cover
+        except sqlite3.Error as e:  # pragma: no cover
             raise CreationError("Could not create database: %s: %s" % (
                     e.__class__.__name__, e.message))
 
@@ -70,7 +70,8 @@ class MetadataStore(object):
         """
         cur = self.conn.cursor()
         try:
-            cur.execute('''
+            cur.execute(
+                    '''
                     SELECT hash FROM metadata
                     WHERE hash = :hash
                     LIMIT 1
@@ -79,7 +80,8 @@ class MetadataStore(object):
             if cur.fetchone() is not None:
                 raise KeyError("Already have metadata for hash")
             if not metadata:
-                cur.execute('''
+                cur.execute(
+                        '''
                         INSERT INTO metadata(hash) VALUES(:hash)
                         ''',
                         {'hash': key})
@@ -106,7 +108,8 @@ class MetadataStore(object):
                                 "Metadata values should be dictionaries with "
                                 "the format:\n"
                                 "{'type': 'int/str/...', 'value': <value>}")
-                    cur.execute('''
+                    cur.execute(
+                            '''
                             INSERT INTO metadata(hash, mkey, mvalue_{name})
                             VALUES(:hash, :key, :value)
                             '''.format(name=t, hash=mkey, value=mvalue),
@@ -123,7 +126,8 @@ class MetadataStore(object):
         """
         cur = self.conn.cursor()
         try:
-            cur.execute('''
+            cur.execute(
+                    '''
                     DELETE FROM metadata WHERE hash = :hash
                     ''',
                     {'hash': key})
@@ -138,7 +142,8 @@ class MetadataStore(object):
         """Gets a row from the hash.
         """
         cur = self.conn.cursor()
-        rows = cur.execute('''
+        rows = cur.execute(
+                '''
                 SELECT * FROM metadata
                 WHERE hash = :hash
                 ''',
@@ -205,7 +210,8 @@ class MetadataStore(object):
                                limit=limit)
 
         # And we put that in the query
-        rows = cur.execute('''
+        rows = cur.execute(
+                '''
                 SELECT *
                 FROM metadata
                 WHERE hash IN ({hashes})
@@ -285,14 +291,14 @@ class ResultBuilder(object):
         self.rows = iter(rows)
         self.record = None
 
-    def __iter__(self): # pragma: no cover
+    def __iter__(self):  # pragma: no cover
         return self
 
     def next(self):
         if self.rows is None:
             raise StopIteration
         if self.record is None:
-            r = next(self.rows) # Might raise StopIteration
+            r = next(self.rows)  # Might raise StopIteration
         else:
             r = self.record
         h = r['hash']
@@ -302,7 +308,7 @@ class ResultBuilder(object):
                 v = r['mvalue_%s' % name]
                 if v is not None:
                     return v
-            else: # pragma: no cover
+            else:  # pragma: no cover
                 raise Error("SQL query didn't return a value for "
                             "hash=%s, key=%s" % (r['hash'], r['mkey']))
 

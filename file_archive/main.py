@@ -169,7 +169,7 @@ def cmd_query(store, args):
                 if types:
                     if isinstance(v, int_types):
                         v = 'int:%d' % v
-                    else: # isinstance(v, string_types):
+                    else:  # isinstance(v, string_types):
                         v = 'str:%s' % v
                 sys.stdout.write("\t%s\t%s\n" % (k, v))
     else:
@@ -182,13 +182,13 @@ def cmd_query(store, args):
                 if types:
                     if isinstance(v, int_types):
                         v = "{'type': 'int', 'value': %d}" % v
-                    else: # isinstance(v, string_types)
+                    else:  # isinstance(v, string_types):
                         assert isinstance(v, unicode_type)
                         v = "{'type': 'str', 'value': u%s}" % quote_str(v)
                 else:
                     if isinstance(v, int_types):
                         v = '%d' % v
-                    else: # isinstance(v, string_types)
+                    else:  # isinstance(v, string_types):
                         assert isinstance(v, unicode_type)
                         v = "u%s" % quote_str(v)
                 k = quote_str(k)
@@ -244,7 +244,7 @@ def cmd_print(store, args):
             if types:
                 if isinstance(v, int_types):
                     v = 'int:%d' % v
-                else: # isinstance(v, string_types):
+                else:  # isinstance(v, string_types):
                     v = 'str:%s' % v
             sys.stdout.write("%s\t%s\n" % (k, v))
     else:
@@ -314,8 +314,7 @@ commands = {
         'print': cmd_print,
         'remove': cmd_remove,
         'verify': cmd_verify,
-        'view': cmd_view,
-    }
+        'view': cmd_view}
 
 
 def main(args):
@@ -364,7 +363,8 @@ def main(args):
         try:
             func(store, args[2:])
         except Exception:
-            import traceback; traceback.print_exc()
+            import traceback
+            traceback.print_exc()
             sys.exit(3)
     finally:
         store.close()

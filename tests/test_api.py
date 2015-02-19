@@ -305,6 +305,7 @@ class TestStore(unittest.TestCase):
             test_warning(warns)
             with warnings.catch_warnings(record=True) as warns:
                 self.store.add_file(os.path.join(d, 'link'), {})
+            test_warning(warns)
 
     @requires_symlink
     def test_symlink_recursive(self):

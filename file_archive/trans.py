@@ -20,10 +20,12 @@ else:
 trans = gettext.NullTranslations()
 
 
-def setup_translation(languages=[]):
+def setup_translation(languages=None):
     global trans
 
-    if isinstance(languages, string_types):
+    if languages is None:
+        languages = []
+    elif isinstance(languages, string_types):
         languages = [languages]
 
     d = pkg_resources.resource_filename('file_archive', 'l10n')
@@ -40,6 +42,7 @@ if hasattr(trans, 'ugettext'):
         if kwargs:
             tr = tr.format(**kwargs)
         return tr
+
     def _n(singular, plural, n, **kwargs):
         tr = trans.ungettext(singular, plural, n)
         if kwargs:
@@ -52,6 +55,7 @@ else:
         if kwargs:
             tr = tr.format(**kwargs)
         return tr
+
     def _n(singular, plural, n, **kwargs):
         tr = trans.ngettext(singular, plural, n)
         if kwargs:

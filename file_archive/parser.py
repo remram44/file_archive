@@ -57,7 +57,7 @@ class Operator(Token):
             cond = 'equal'
         elif self.text == '<':
             cond = 'gt' if inverted else 'lt'
-        elif self.text == '>': # pragma: no branch
+        else:  # self.text == '>':
             cond = 'lt' if inverted else 'gt'
         return left.text, {'type': right.type, cond: right.value}
 
