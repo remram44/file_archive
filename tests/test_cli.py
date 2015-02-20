@@ -125,6 +125,17 @@ class TestStore(unittest.TestCase):
                 h1: {'tag': 'testfile', 'test': 1},
                 h2: {'tag': 'other', 'test': 2},
             })
+        self.assertEqual(out,
+                         ['{',
+                          '    "de0ccf54a9c1de0d9fdbf23f71a64762448057d0": {',
+                          '        "tag": "other",',
+                          '        "test": 2',
+                          '    },',
+                          '    "fce92fa2647153f7d696a3c1884d732290273102": {',
+                          '        "tag": "testfile",',
+                          '        "test": 1',
+                          '    }',
+                          '}'])
 
     # TODO : print
 

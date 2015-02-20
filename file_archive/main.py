@@ -162,10 +162,17 @@ def cmd_query(store, args):
         entries = [store.get(h)]
     else:
         entries = store.query(metadata)
+
+    def sort_filter_entry(entry):
+        metadata = entry.metadata
+        return ((k, v)
+                for k, v in sorted(metadata.items(), key=lambda p: p[0])
+                if k != 'hash')
+
     if not pydict:
         for entry in entries:
             sys.stdout.write("%s\n" % entry['hash'])
-            for k, v in entry.metadata.items():
+            for k, v in sort_filter_entry(entry):
                 if k == 'hash':
                     continue
                 if types:
@@ -175,12 +182,12 @@ def cmd_query(store, args):
                         v = 'str:%s' % v
                 sys.stdout.write("\t%s\t%s\n" % (k, v))
     else:
-        sys.stdout.write('{\n')
-        for entry in entries:
-            sys.stdout.write('    "%s": {\n' % entry['hash'])
-            for k, v in entry.metadata.items():
-                if k == 'hash':
-                    continue
+        sys.stdout.write('{')
+        for entry_nb, entry in enumerate(entries):
+            sys.stdout.write(',\n' if entry_nb > 0 else '\n')
+            sys.stdout.write('    "%s": {' % entry['hash'])
+            for meta_nb, (k, v) in enumerate(sort_filter_entry(entry)):
+                sys.stdout.write(',\n' if meta_nb > 0 else '\n')
                 if types:
                     if isinstance(v, int_types):
                         v = '{"type": "int", "value": %d}' % v
@@ -194,9 +201,9 @@ def cmd_query(store, args):
                         assert isinstance(v, unicode_type)
                         v = quote_str(v)
                 k = quote_str(k)
-                sys.stdout.write("        %s: %s,\n" % (k, v))
-            sys.stdout.write('    },\n')
-        sys.stdout.write('}\n')
+                sys.stdout.write("        %s: %s" % (k, v))
+            sys.stdout.write('\n    }')
+        sys.stdout.write('\n}\n')
 
 
 def cmd_print(store, args):
