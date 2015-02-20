@@ -4,7 +4,7 @@ import os
 import shutil
 import warnings
 
-from file_archive.compat import string_types, sha1
+from file_archive.compat import string_types, sha1, quote_str
 from file_archive.database import MetadataStore
 from file_archive.errors import CreationError, InvalidStore, UsageWarning
 
@@ -104,6 +104,18 @@ def hash_directory(path, root=None, visited=None):
     return h.hexdigest()
 
 
+def hash_metadata(metadata):
+    """Hashes a dictionary of metadata.
+    """
+    assert 'hash' in metadata
+
+    h = sha1()
+    for k, v in sorted(metadata.items(), key=lambda p: p[0]):
+        h.update('%s\n' % quote_str(k))
+        h.update('%s\n' % quote_str(v))
+    return h.hexdigest()
+
+
 def copy_directory(sourcepath, destination, root=None):
     """Copies a directory recursively to a destination name.
     """
@@ -133,12 +145,16 @@ def copy_directory(sourcepath, destination, root=None):
 class Entry(object):
     """Represents a file in the store, along with its metadata.
 
-    Use open() to get a file object, or use entry['key'] to read metadata
+    Use open() to get a file object, or use entry['somekey'] to read metadata
     values (also available as the entry.metadata dict).
+
+    The metadata always contains at least 'hash', the hash of the file or
+    directory associated with the entry.
     """
-    def __init__(self, store, infos):
-        self.filename = store.get_filename(infos['hash'])
-        self.metadata = infos
+    def __init__(self, store, objectid, metadata):
+        self.objectid = objectid
+        self.filename = store._make_filename(metadata['hash'])
+        self.metadata = metadata
 
     def __getitem__(self, key):
         return self.metadata[key]
@@ -154,13 +170,14 @@ class EntryIterator(object):
     """
     def __init__(self, store, infos):
         self.store = store
-        self.infos = infos
+        self.metadata_iterator = infos
 
     def __iter__(self):
         return self
 
     def next(self):
-        return Entry(self.store, self.infos.next())
+        objectid, metadata = next(self.metadata_iterator)
+        return Entry(self.store, objectid, metadata)
     __next__ = next
 
 
@@ -196,20 +213,35 @@ class FileStore(object):
     def close(self):
         self.metadata.close()
         self.metadata = None
+        self.store = None
 
-    def open_file(self, filehash, binary=True):
-        """Returns a file object for a given SHA1 hash.
+    def open_file(self, objectid, path=None, binary=True):
+        """Returns a file object for a given objectid.
         """
-        try:
-            return open(self.get_filename(filehash), 'rb' if binary else 'r')
-        except IOError:
-            raise KeyError("No file with hash %s" % filehash)
+        filepath = self.get_filename(objectid)
+        if os.path.isdir(filepath):
+            if path:
+                return open(os.path.join(filepath, path),
+                            'rb' if binary else 'r')
+            else:
+                raise ValueError("Object is a directory, not a file")
+        else:  # os.path.isfile(filepath):
+            if path is not None:
+                raise ValueError("Object is a file, not a directory")
+            else:
+                return open(filepath, 'rb' if binary else 'r')
 
-    def get_filename(self, filehash, make_dir=False):
-        """Returns the file path for a given SHA1 hash.
+    def get_filename(self, objectid):
+        """Returns the file path for a given objectid.
         """
-        if not isinstance(filehash, string_types):
-            raise TypeError("hash should be a string, not %s" % type(filehash))
+        if not isinstance(objectid, string_types):
+            raise TypeError("hash should be a string, not %s" % type(objectid))
+        metadata = self.metadata.get(objectid)
+        return self._make_filename(metadata['hash'])
+
+    def _make_filename(self, filehash, make_dir=False):
+        """Gets or makes the path for the given filehash.
+        """
         dirname = os.path.join(self.store, filehash[:2])
         if make_dir and not os.path.isdir(dirname):
             os.mkdir(dirname)
@@ -235,18 +267,18 @@ class FileStore(object):
         newfile.seek(0, os.SEEK_SET)
         filehash = hash_file(newfile)
         newfile.seek(0, os.SEEK_SET)
-        storedfile = self.get_filename(filehash, make_dir=True)
-        if os.path.exists(storedfile):
-            raise KeyError("This file already exists in the store")
-        copy_file(newfile, storedfile)
+        metadata = dict(metadata)
+        metadata['hash'] = filehash
+        objectid = hash_metadata(metadata)
+        storedfile = self.get_filename(objectid, make_dir=True)
+        if not os.path.exists(storedfile):
+            copy_file(newfile, storedfile)
         try:
-            self.metadata.add(filehash, metadata)
+            self.metadata.add(objectid, metadata)
         except:
             os.remove(storedfile)
             raise
-        infos = dict(metadata)
-        infos['hash'] = filehash
-        return Entry(self, infos)
+        return Entry(self, objectid, metadata)
 
     def add_directory(self, newdir, metadata):
         """Adds a directory given a path and dict of metadata.
@@ -260,18 +292,19 @@ class FileStore(object):
             dirhash = hash_directory(newdir)
         except (IOError, OSError):
             raise ValueError("Can't access directory")
-        storeddir = self.get_filename(dirhash, make_dir=True)
+        metadata = dict(metadata)
+        metadata['hash'] = dirhash
+        objectid = hash_metadata(metadata)
+        storeddir = self.get_filename(objectid, make_dir=True)
         if os.path.exists(storeddir):
             raise KeyError("This directory already exists in the store")
         copy_directory(newdir, storeddir)
         try:
-            self.metadata.add(dirhash, metadata)
+            self.metadata.add(objectid, metadata)
         except:
             shutil.rmtree(storeddir)
             raise
-        infos = dict(metadata)
-        infos['hash'] = dirhash
-        return Entry(self, infos)
+        return Entry(self, objectid, metadata)
 
     def add(self, newpath, metadata):
         """Adds a file or directory with a dict of metadata.
@@ -287,38 +320,39 @@ class FileStore(object):
         else:
             return self.add_file(newpath, metadata)
 
-    def remove(self, objecthash):
-        """Removes a file or directory given its SHA1 hash.
+    def remove(self, objectid):
+        """Removes a file or directory given its objectid.
 
         It is deleted from the store and removed from the database.
         """
-        if isinstance(objecthash, Entry):
-            objecthash = objecthash['hash']
-        objectpath = self.get_filename(objecthash)
-        if not os.path.exists(objectpath):
-            raise KeyError("No object with hash %s" % objecthash)
-        if os.path.isdir(objectpath):
-            shutil.rmtree(objectpath)
+        if isinstance(objectid, Entry):
+            entry = objectid
         else:
-            os.remove(objectpath)
-        self.metadata.remove(objecthash)
+            entry = self.get(objectid)
+        self.metadata.remove(entry.objectid)
+        if not self.metadata.has_filehash(entry['hash']):
+            # Garbage collection
+            if os.path.isdir(entry.filename):
+                shutil.rmtree(entry.filename)
+            else:
+                os.remove(entry.filename)
 
-    def get(self, objecthash):
+    def get(self, objectid):
         """Gets an Entry from a hash.
         """
-        infos = self.metadata.get(objecthash)  # Might raise KeyError
-        return Entry(self, infos)
+        metadata = self.metadata.get(objectid)  # Might raise KeyError
+        return Entry(self, objectid, metadata)
 
     def query_one(self, conditions):
         """Returns at most one Entry matching the conditions.
 
         Returns one of the Entry object matching the conditions or None.
         """
-        infos = self.metadata.query_one(conditions)
-        if infos is None:
+        objectid, metadata = self.metadata.query_one(conditions)
+        if objectid is None:
             return None
         else:
-            return Entry(self, infos)
+            return Entry(self, objectid, metadata)
 
     def query(self, conditions, limit=None):
         """Returns all the Entries matching the conditions.

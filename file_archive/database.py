@@ -34,7 +34,8 @@ class MetadataStore(object):
             tables = cur.execute('''
                     SELECT name FROM sqlite_master WHERE type = 'table'
                     ''')
-            if set(r['name'] for r in tables.fetchall()) != set(['metadata']):
+            tables = set(r['name'] for r in tables.fetchall())
+            if tables != set(['metadata_v2']):
                 raise InvalidStore("Database doesn't have required structure")
         except sqlite3.Error as e:
             raise InvalidStore("Cannot access database: %s: %s" % (
@@ -46,11 +47,11 @@ class MetadataStore(object):
             conn = sqlite3.connect(database)
             query = '''
                     CREATE TABLE metadata(
-                        hash VARCHAR(40) NOT NULL,
+                        objectid VARCHAR(40) NOT NULL,
                         mkey VARCHAR(255) NULL
                     '''
             indexes = [
-                    'CREATE INDEX hash_idx ON metadata(hash)',
+                    'CREATE INDEX id_idx ON metadata(objectid)',
                     'CREATE INDEX mkey_idx ON metadata(mkey)']
 
             for datatype, name in MetadataStore._TYPES:
@@ -77,64 +78,59 @@ class MetadataStore(object):
         self.conn.commit()
         self.conn.close()
 
-    def add(self, key, metadata):
-        """Adds a hash and its metadata to the store.
+    def add(self, objectid, metadata):
+        """Adds an object to the store.
 
-        Raises KeyError if an entry already existed.
+        Returns True if it wasn't already stored.
         """
+        assert 'hash' in metadata
         cur = self.conn.cursor()
         try:
             cur.execute(
                     '''
-                    SELECT hash FROM metadata
-                    WHERE hash = :hash
+                    SELECT objectid FROM metadata
+                    WHERE objectid = :objectid
                     LIMIT 1
                     ''',
-                    {'hash': key})
+                    {'objectid': objectid})
             if cur.fetchone() is not None:
-                raise KeyError("Already have metadata for hash")
-            if not metadata:
+                return False
+            for mkey, mvalue in metadata.items():
+                if isinstance(mvalue, string_types):
+                    t = 'str'
+                elif isinstance(mvalue, int_types):
+                    t = 'int'
+                elif isinstance(mvalue, dict):
+                    r = dict(mvalue)
+                    try:
+                        t = r.pop('type')
+                        mvalue = r.pop('value')
+                        if r:
+                            raise KeyError
+                    except KeyError:
+                        raise ValueError("Metadata values should be "
+                                         "dictionaries with the format:\n"
+                                         "{'type': 'int/str/...', "
+                                         "'value': <value>}")
+                else:
+                    raise TypeError(
+                            "Metadata values should be dictionaries with "
+                            "the format:\n"
+                            "{'type': 'int/str/...', 'value': <value>}")
                 cur.execute(
                         '''
-                        INSERT INTO metadata(hash) VALUES(:hash)
-                        ''',
-                        {'hash': key})
-            else:
-                for mkey, mvalue in metadata.items():
-                    if isinstance(mvalue, string_types):
-                        t = 'str'
-                    elif isinstance(mvalue, int_types):
-                        t = 'int'
-                    elif isinstance(mvalue, dict):
-                        r = dict(mvalue)
-                        try:
-                            t = r.pop('type')
-                            mvalue = r.pop('value')
-                            if r:
-                                raise KeyError
-                        except KeyError:
-                            raise ValueError("Metadata values should be "
-                                             "dictionaries with the format:\n"
-                                             "{'type': 'int/str/...', "
-                                             "'value': <value>}")
-                    else:
-                        raise TypeError(
-                                "Metadata values should be dictionaries with "
-                                "the format:\n"
-                                "{'type': 'int/str/...', 'value': <value>}")
-                    cur.execute(
-                            '''
-                            INSERT INTO metadata(hash, mkey, mvalue_{name})
-                            VALUES(:hash, :key, :value)
-                            '''.format(name=t, hash=mkey, value=mvalue),
-                            {'hash': key, 'key': mkey, 'value': mvalue})
+                        INSERT INTO metadata(objectid, mkey, mvalue_{name})
+                        VALUES(:objectid, :key, :value)
+                        '''.format(name=t, hash=mkey, value=mvalue),
+                        {'objectid': objectid, 'key': mkey, 'value': mvalue})
             self.conn.commit()
+            return True
         except:
             self.conn.rollback()
             raise
 
-    def remove(self, key):
-        """Removes a hash and its metadata from the store.
+    def remove(self, objectid):
+        """Removes an object from the store.
 
         Raises KeyError if the entry didn't exist.
         """
@@ -142,40 +138,60 @@ class MetadataStore(object):
         try:
             cur.execute(
                     '''
-                    DELETE FROM metadata WHERE hash = :hash
+                    DELETE FROM metadata WHERE objectid = :objectid
                     ''',
-                    {'hash': key})
+                    {'objectid': objectid})
             if not cur.rowcount:
-                raise KeyError(key)
+                raise KeyError(objectid)
             self.conn.commit()
         except:
             self.conn.rollback()
             raise
 
-    def get(self, key):
-        """Gets a row from the hash.
+    def get(self, objectid):
+        """Gets an entry from its objectid, as a dict.
         """
         cur = self.conn.cursor()
         rows = cur.execute(
                 '''
                 SELECT * FROM metadata
-                WHERE hash = :hash
+                WHERE objectid = :objectid
                 ''',
-                {'hash': key})
+                {'objectid': objectid})
         result = ResultBuilder(rows)
         try:
             return next(result)
         except StopIteration:
-            raise KeyError("No metadata for hash")
+            raise KeyError("No entry with this objectid")
+
+    def has_filehash(self, filehash):
+        """Checks for at least one entry with the given file hash.
+
+        File should be garbage-collected if no entry refers to it.
+        """
+        cur = self.conn.cursor()
+        rows = cur.execute(
+                '''
+                SELECT * FROM metadata
+                WHERE mkey = 'hash' AND mvalue_str = :filehash
+                ''',
+                {'filehash': filehash})
+        try:
+            next(rows)
+            return True
+        except StopIteration:
+            return False
 
     def query_one(self, conditions):
-        """Returns at most one row matching the conditions, as a dict.
+        """Returns at most one entry matching the conditions, as a dict.
 
-        The returned dict will have the 'hash' key plus all the stored
+        Returns objectid, metadata:dict
+
+        The metadata dict will have the 'hash' key plus all the stored
         metadata.
 
-        conditions is a dictionary of metadata that need to be included in the
-        actual dict of each hash.
+        `conditions` is a dictionary of metadata that need to be included in
+        the actual dict of each entry.
         """
         rows = self.query_all(conditions, limit=1)
         try:
@@ -186,7 +202,11 @@ class MetadataStore(object):
     def query_all(self, conditions, limit=None):
         """Returns an iterable of rows matching the conditions.
 
-        Each row is a dict, with at least the 'hash' key.
+        Each row is a pair (objectid, metadata), where metadata will have the
+        'hash' key plus all the stored metadata.
+
+        `conditions` is a dictionary of metadata that need to be included in
+        the actual dict of each entry.
         """
         # Build the LIMIT part from the limit arg (number or None)
         if limit is not None:
@@ -197,7 +217,7 @@ class MetadataStore(object):
         cur = self.conn.cursor()
         if not conditions:
             hquery = '''
-                    SELECT DISTINCT hash
+                    SELECT DISTINCT objectid
                     FROM metadata
                     {limit}
                     '''.format(limit=limit)
@@ -206,13 +226,13 @@ class MetadataStore(object):
             conditems = self._make_conditions(conditions)
             i, key, cond0, params = next(conditems)
             hquery = '''
-                    SELECT i0.hash
+                    SELECT i0.objectid
                     FROM metadata i0
                     '''
             params['key0'] = key
             for i, key, cond, prms in conditems:
                 hquery += '''
-                        INNER JOIN metadata i{i} ON i0.hash = i{i}.hash
+                        INNER JOIN metadata i{i} ON i0.objectid = i{i}.objectid
                             AND i{i}.mkey = :key{i} {cond}
                         '''.format(i=i, cond='AND ' + cond if cond else '')
                 params['key%d' % i] = key
@@ -228,9 +248,9 @@ class MetadataStore(object):
                 '''
                 SELECT *
                 FROM metadata
-                WHERE hash IN ({hashes})
-                ORDER BY hash
-                '''.format(hashes=hquery),
+                WHERE objectid IN ({ids})
+                ORDER BY objectid
+                '''.format(ids=hquery),
                 params)
 
         return ResultBuilder(rows)
@@ -289,17 +309,17 @@ class MetadataStore(object):
 
 
 class ResultBuilder(object):
-    """This regroups rows for key-values of a single hash into one dict.
+    """This regroups rows for key-values of a single entry into one dict.
 
     Example:
-    +------+------+--------+
-    | hash | mkey | mvalue |        [
-    +------+------+--------+         {'hash': 'aaaa', 'one': 11, 'two': 12},
-    | aaaa | one  |   11   |   =>    {'hash': 'bbbb', 'one': 21, 'six': 26},
-    | aaaa | two  |   12   |        ]
-    | bbbb | one  |   21   |
-    | bbbb | six  |   26   |
-    +------+------+--------+
+    +--------+----+------+
+    |objectid|mkey|mvalue|    [
+    +--------+----+------+     'aaaa', {'hash': 'xxxx', 'one': 11, 'two': 12},
+    |  aaaa  |one |  11  | =>  'bbbb', {'hash': 'yyyy', 'one': 21, 'six': 26},
+    |  aaaa  |two |  12  |    ]
+    |  bbbb  |one |  21  |
+    |  bbbb  |six |  26  |
+    +--------+----+------+
     """
     def __init__(self, rows):
         self.rows = iter(rows)
@@ -315,7 +335,7 @@ class ResultBuilder(object):
             r = next(self.rows)  # Might raise StopIteration
         else:
             r = self.record
-        h = r['hash']
+        objectid = r['objectid']
 
         def get_value(r):
             for datatype, name in MetadataStore._TYPES:
@@ -324,21 +344,23 @@ class ResultBuilder(object):
                     return v
             else:  # pragma: no cover
                 raise Error("SQL query didn't return a value for "
-                            "hash=%s, key=%s" % (r['hash'], r['mkey']))
+                            "objectid=%s, key=%s" % (r['objectid'], r['mkey']))
 
-        # We are outer joining, so a hash with no metadata will be returned as
-        # a single row with mkey=NULL and everything but hash NULL
+        # We are outer joining, so an objectid with no metadata will be
+        # returned as a single row with mkey and everything but objectid NULL
         if len(r) > 1 and r['mkey']:
-            dct = {'hash': h, r['mkey']: get_value(r)}
+            dct = {r['mkey']: get_value(r)}
         else:
-            dct = {'hash': h}
+            dct = {}
 
         for r in self.rows:
-            if r['hash'] != h:
+            if r['objectid'] != objectid:
                 self.record = r
-                return dct
+                assert 'hash' in dct
+                return objectid, dct
             dct[r['mkey']] = get_value(r)
         else:
             self.rows = None
-        return dct
+        assert 'hash' in dct
+        return objectid, dct
     __next__ = next
