@@ -62,7 +62,7 @@ else:
 
 
 def quote_str(s):
-    return "'%s'" % s.replace("\\", "\\\\").replace("'", "\\'")
+    return '"%s"' % s.replace("\\", "\\\\").replace('"', '\\"')
 
 
 try:

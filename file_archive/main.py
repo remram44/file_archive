@@ -177,24 +177,24 @@ def cmd_query(store, args):
     else:
         sys.stdout.write('{\n')
         for entry in entries:
-            sys.stdout.write("    '%s': {\n" % entry['hash'])
+            sys.stdout.write('    "%s": {\n' % entry['hash'])
             for k, v in entry.metadata.items():
                 if k == 'hash':
                     continue
                 if types:
                     if isinstance(v, int_types):
-                        v = "{'type': 'int', 'value': %d}" % v
+                        v = '{"type": "int", "value": %d}' % v
                     else:  # isinstance(v, string_types):
                         assert isinstance(v, unicode_type)
-                        v = "{'type': 'str', 'value': u%s}" % quote_str(v)
+                        v = '{"type": "str", "value": %s}' % quote_str(v)
                 else:
                     if isinstance(v, int_types):
                         v = '%d' % v
                     else:  # isinstance(v, string_types):
                         assert isinstance(v, unicode_type)
-                        v = "u%s" % quote_str(v)
+                        v = quote_str(v)
                 k = quote_str(k)
-                sys.stdout.write("        u%s: %s,\n" % (k, v))
+                sys.stdout.write("        %s: %s,\n" % (k, v))
             sys.stdout.write('    },\n')
         sys.stdout.write('}\n')
 
