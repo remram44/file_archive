@@ -16,7 +16,6 @@ BytesIO, StringIO
 
 from __future__ import division, unicode_literals
 
-from abc import ABCMeta
 import hashlib
 import sys
 
@@ -28,20 +27,19 @@ __all__ = ['PY3', 'string_types', 'int_types', 'sha1', 'unicode_type',
 PY3 = sys.version_info >= (3, 0)
 
 
-try:
+if not PY3:
     string_types = basestring
-except NameError:
-    string_types = str
+    int_types = int, long
+    unicode_type = unicode
 
-try:
-    long
-except NameError:
-    int_types = int
+    from StringIO import StringIO
+    BytesIO = StringIO
 else:
-    class int_types:
-        __metaclass__ = ABCMeta
-    int_types.register(int)
-    int_types.register(long)
+    string_types = str
+    int_types = int
+    unicode_type = str
+
+    from io import StringIO, BytesIO
 
 
 class sha1(object):
@@ -59,26 +57,5 @@ class sha1(object):
         return self._hash.hexdigest()
 
 
-if bytes == str:
-    unicode_type = unicode
-else:
-    unicode_type = str
-
-
 def quote_str(s):
     return '"%s"' % s.replace("\\", "\\\\").replace('"', '\\"')
-
-
-try:
-    # CPython 2
-    from cStringIO import StringIO
-    BytesIO = StringIO
-except ImportError:
-    try:
-        # Python 2
-        from StringIO import StringIO as BytesIO
-        BytesIO = StringIO
-    except ImportError:
-        # Python 3
-        from io import StringIO
-        from io import BytesIO
