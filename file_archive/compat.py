@@ -11,17 +11,18 @@ quote_str:
  * Version of 2's repr() that won't add a 'u' prefix (different versions of
    Python put it or not)
 
-StringIO
+BytesIO, StringIO
 """
 
 from __future__ import division, unicode_literals
 
 from abc import ABCMeta
 import hashlib
+import sys
 
 
-__all__ = ['string_types', 'int_types', 'sha1', 'unicode_type', 'quote_str',
-           'StringIO']
+__all__ = ['PY3', 'string_types', 'int_types', 'sha1', 'unicode_type',
+           'quote_str', 'StringIO', 'BytesIO']
 
 
 try:
@@ -68,10 +69,13 @@ def quote_str(s):
 try:
     # CPython 2
     from cStringIO import StringIO
+    BytesIO = StringIO
 except ImportError:
     try:
         # Python 2
-        from StringIO import StringIO
+        from StringIO import StringIO as BytesIO
+        BytesIO = StringIO
     except ImportError:
         # Python 3
         from io import StringIO
+        from io import BytesIO

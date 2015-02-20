@@ -12,7 +12,7 @@ except ImportError:
     import unittest
 
 import file_archive
-from file_archive.compat import StringIO
+from file_archive.compat import BytesIO
 
 from .common import temp_dir, temp_warning_filter
 
@@ -26,17 +26,18 @@ class TestInternals(unittest.TestCase):
     """
     def test_buffered_reader(self):
         def chunks(s):
-            return list(file_archive.BufferedReader(StringIO(s)))
+            return list(file_archive.BufferedReader(BytesIO(s)))
 
         old_chunk_size = file_archive.CHUNKSIZE
         file_archive.CHUNKSIZE = 4
         try:
-            self.assertEqual(chunks(''), [])
-            self.assertEqual(chunks('a'), ['a'])
-            self.assertEqual(chunks('abcd'), ['abcd'])
-            self.assertEqual(chunks('abcde'), ['abcd', 'e'])
-            self.assertEqual(chunks('abcdefghijkl'), ['abcd', 'efgh', 'ijkl'])
-            self.assertEqual(chunks('abcdefghij'), ['abcd', 'efgh', 'ij'])
+            self.assertEqual(chunks(b''), [])
+            self.assertEqual(chunks(b'a'), [b'a'])
+            self.assertEqual(chunks(b'abcd'), [b'abcd'])
+            self.assertEqual(chunks(b'abcde'), [b'abcd', b'e'])
+            self.assertEqual(chunks(b'abcdefghijkl'),
+                             [b'abcd', b'efgh', b'ijkl'])
+            self.assertEqual(chunks(b'abcdefghij'), [b'abcd', b'efgh', b'ij'])
         finally:
             file_archive.CHUNKSIZE = old_chunk_size
 
