@@ -1,3 +1,5 @@
+from __future__ import division, unicode_literals
+
 import tdparser
 try:
     import unittest2 as unittest

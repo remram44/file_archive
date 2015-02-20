@@ -1,3 +1,5 @@
+from __future__ import division, unicode_literals
+
 from tdparser import Lexer, Parser, Token, ParserError
 from tdparser.topdown import EndToken
 

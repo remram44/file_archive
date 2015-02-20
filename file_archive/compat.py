@@ -14,6 +14,8 @@ quote_str:
 StringIO
 """
 
+from __future__ import division, unicode_literals
+
 from abc import ABCMeta
 import hashlib
 

@@ -1,3 +1,5 @@
+from __future__ import division, unicode_literals
+
 import os
 import platform
 import shutil

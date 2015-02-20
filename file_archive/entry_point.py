@@ -1,3 +1,5 @@
+from __future__ import division, unicode_literals
+
 import codecs
 import locale
 import sys
