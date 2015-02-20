@@ -158,9 +158,9 @@ class TestParseQuery(unittest.TestCase):
         strs = ['type=a file',
                 'month=str:october',
                 'time=str:11:20']
-        dct = {'type': {'type': 'str', 'equal': u'a file'},
-               'month': {'type': 'str', 'equal': u'october'},
-               'time': {'type': 'str', 'equal': u'11:20'}}
+        dct = {'type': {'type': 'str', 'equal': 'a file'},
+               'month': {'type': 'str', 'equal': 'october'},
+               'time': {'type': 'str', 'equal': '11:20'}}
         self.assertEqual(file_archive.main.parse_query_metadata(strs),
                          (None, dct))
 
@@ -189,9 +189,9 @@ class TestParseNewData(unittest.TestCase):
         self.assertEqual(file_archive.main.parse_new_metadata(
                 ['type=a file', 'month=str:october',
                  'time=str:11:40', 'year=int:2013']),
-                {'type': {'type': 'str', 'value': u'a file'},
-                 'month': {'type': 'str', 'value': u'october'},
-                 'time': {'type': 'str', 'value': u'11:40'},
+                {'type': {'type': 'str', 'value': 'a file'},
+                 'month': {'type': 'str', 'value': 'october'},
+                 'time': {'type': 'str', 'value': '11:40'},
                  'year': {'type': 'int', 'value': 2013}})
 
     def test_errors(self):

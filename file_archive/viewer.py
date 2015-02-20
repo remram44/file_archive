@@ -76,7 +76,7 @@ class MetadataItem(FileItem):
 
 
 class StoreViewerWindow(QtGui.QMainWindow):
-    WINDOW_TITLE = _(u"file_archive viewer")
+    WINDOW_TITLE = _("file_archive viewer")
 
     MAX_RESULTS = 100
 
@@ -92,13 +92,13 @@ class StoreViewerWindow(QtGui.QMainWindow):
 
         # Input line for the query
         self._input = QtGui.QLineEdit()
-        self._input.setPlaceholderText(_(u"Enter query here"))
+        self._input.setPlaceholderText(_("Enter query here"))
         self._input.returnPressed.connect(self._search)
         self._input.textEdited.connect(lambda t: self._set_needs_refresh())
         searchbar.addWidget(self._input)
 
         # Search button
-        self._searchbutton = QtGui.QPushButton(_(u"Search"))
+        self._searchbutton = QtGui.QPushButton(_("Search"))
         self._searchbutton.clicked.connect(self._search)
         self._set_needs_refresh(True)
         searchbar.addWidget(self._searchbutton)
@@ -108,7 +108,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
         # Result view, as a tree with metadata
         self._result_tree = QtGui.QTreeWidget()
         self._result_tree.setColumnCount(3)
-        self._result_tree.setHeaderLabels([_(u"Key"), _(u"Value"), _(u"Type")])
+        self._result_tree.setHeaderLabels([_("Key"), _("Value"), _("Type")])
         self._result_tree.itemSelectionChanged.connect(self._selection_changed)
         results.addWidget(self._result_tree)
 
@@ -135,7 +135,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
         # Open button; uses the system to choose the program to open with
         # (on Windows, might ask you what to use every time because of filename
         # scheme)
-        open_button = QtGui.QPushButton(_(u"Open"))
+        open_button = QtGui.QPushButton(_("Open"))
         if openfile is not None:
             open_button.clicked.connect(self._openfile)
             buttons.append(('single', open_button))
@@ -143,7 +143,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
             open_button.setEnabled(False)
 
         # Delete button, removes what's selected (with confirmation)
-        remove_button = QtGui.QPushButton(_(u"Delete"))
+        remove_button = QtGui.QPushButton(_("Delete"))
         remove_button.clicked.connect(self._delete)
         buttons.append(('multi', remove_button))
 
@@ -173,7 +173,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
             try:
                 entries = [self.store.get(h)]
             except KeyError:
-                error = _(u"hash '{h}' not found", h=h)
+                error = _("hash '{h}' not found", h=h)
 
         else:
             try:
@@ -206,7 +206,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
 
                 if i >= self.MAX_RESULTS:
                     last_item = QtGui.QTreeWidgetItem(
-                            [_(u"... stripped after {nb} results...",
+                            [_("... stripped after {nb} results...",
                                nb=self.MAX_RESULTS)])
                     f = last_item.font(0)
                     f.setBold(True)
@@ -217,7 +217,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
                                                                 True)
                     break
             if self._result_tree.topLevelItemCount() == 0:
-                w = QtGui.QTreeWidgetItem([_(u"No matches")])
+                w = QtGui.QTreeWidgetItem([_("No matches")])
                 self._result_tree.addTopLevelItem(w)
                 self._result_tree.setFirstItemColumnSpanned(w, True)
             self._result_tree.expandAll()
@@ -246,11 +246,11 @@ class StoreViewerWindow(QtGui.QMainWindow):
             return
         confirm = QtGui.QMessageBox.question(
                 self,
-                _(u"Are you sure?"),
-                _n(u"You are about to delete {num} entry from the store. "
-                   u"Please confirm.",
-                   u"You are about to delete {num} entries from the store. "
-                   u"Please confirm.",
+                _("Are you sure?"),
+                _n("You are about to delete {num} entry from the store. "
+                   "Please confirm.",
+                   "You are about to delete {num} entries from the store. "
+                   "Please confirm.",
                    len(items),
                    num=len(items)),
                 QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel,
