@@ -2,11 +2,23 @@ from __future__ import division, unicode_literals
 
 import sqlite3
 
-from .compat import string_types, int_types
+from .compat import PY3, string_types, int_types
 from .errors import Error, CreationError, InvalidStore
 
 
 __all__ = ['MetadataStore']
+
+
+if not PY3:
+    class Row(sqlite3.Row):
+        """Version of sqlite3.Row that doesn't choke on unicode column names.
+        """
+        def __getitem__(self, idx):  # pragma: no cover
+            if isinstance(idx, unicode):
+                idx = idx.encode('ascii')
+            return sqlite3.Row.__getitem__(self, idx)
+else:
+    Row = sqlite3.Row
 
 
 class MetadataStore(object):
@@ -17,7 +29,7 @@ class MetadataStore(object):
     def __init__(self, database):
         try:
             self.conn = sqlite3.connect(database)
-            self.conn.row_factory = sqlite3.Row
+            self.conn.row_factory = Row
             cur = self.conn.cursor()
             tables = cur.execute('''
                     SELECT name FROM sqlite_master WHERE type = 'table'

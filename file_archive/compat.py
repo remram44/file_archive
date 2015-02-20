@@ -25,6 +25,9 @@ __all__ = ['PY3', 'string_types', 'int_types', 'sha1', 'unicode_type',
            'quote_str', 'StringIO', 'BytesIO']
 
 
+PY3 = sys.version_info >= (3, 0)
+
+
 try:
     string_types = basestring
 except NameError:
