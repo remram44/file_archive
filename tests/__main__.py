@@ -18,7 +18,7 @@ if not top_level in sys.path:
 sys.path.append(start_dir)
 
 
-locale.setlocale(locale.LC_ALL, 'C')
+locale.setlocale(locale.LC_ALL, str('C'))
 
 
 class Program(unittest.TestProgram):

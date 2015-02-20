@@ -10,7 +10,7 @@ from file_archive.trans import setup_translation
 
 def entry_point():
     # Locale
-    locale.setlocale(locale.LC_ALL, '')
+    locale.setlocale(locale.LC_ALL, str(''))
 
     # Encoding for output streams
     if str == bytes:
