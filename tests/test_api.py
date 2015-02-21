@@ -14,7 +14,7 @@ except ImportError:
 import file_archive
 from file_archive.compat import BytesIO
 
-from .common import temp_dir, temp_warning_filter
+from tests.common import temp_dir, temp_warning_filter
 
 
 requires_symlink = unittest.skipIf(platform.system() == 'Windows',
@@ -137,6 +137,7 @@ class TestStore(unittest.TestCase):
     def test_putfile(self):
         entry1 = self.store.add_file(self.t('file1.bin'), {'a': 'b'})
         h1 = 'fce92fa2647153f7d696a3c1884d732290273102'
+        o1 = '8ce67dc4c67401ff8122ecebc98ecee506211f88'
         self.assertEqual(entry1['hash'], h1)
         self.assertTrue(os.path.isfile(os.path.join(
                 self.path,
@@ -144,18 +145,30 @@ class TestStore(unittest.TestCase):
                 'fc',
                 'e92fa2647153f7d696a3c1884d732290273102')))
         self.assertEqual(
-                self.store.get(h1).metadata,
+                self.store.get(o1).metadata,
                 {'hash': h1, 'a': 'b'})
 
     def test_put_file_twice(self):
         self.assertIsNotNone(self.store.add_file(self.t('file1.bin'), {}))
-        with self.assertRaises(KeyError):
-            self.store.add_file(self.t('file1.bin'), {})
+        self.assertIsNotNone(self.store.add_file(self.t('file1.bin'), {}))
+        self.assertIsNotNone(self.store.add_file(self.t('file1.bin'),
+                                                 {'k': 'v'}))
+
+        self.assertEqual(os.listdir(os.path.join(self.path, 'objects')),
+                         ['fc'])
+        self.assertEqual(os.listdir(os.path.join(self.path, 'objects', 'fc')),
+                         ['e92fa2647153f7d696a3c1884d732290273102'])
 
     def test_put_dir_twice(self):
-        self.assertIsNotNone(self.store.add_directory(self.t('dir3'), {'a': 'b'}))
-        with self.assertRaises(KeyError):
-            self.store.add_directory(self.t('dir3'), {})
+        self.assertIsNotNone(self.store.add_directory(self.t('dir3'),
+                                                      {'a': 'b'}))
+        self.assertIsNotNone(self.store.add_directory(self.t('dir3'), {}))
+        self.assertIsNotNone(self.store.add_directory(self.t('dir3'), {}))
+
+        self.assertEqual(os.listdir(os.path.join(self.path, 'objects')),
+                         ['ed'])
+        self.assertEqual(os.listdir(os.path.join(self.path, 'objects', 'ed')),
+                         ['1e24cdb080c9b870598572ee645fb358f8d7dc'])
 
     def test_reqs(self):
         def assert_one(cond, expected):
@@ -163,26 +176,31 @@ class TestStore(unittest.TestCase):
             if entry is None:
                 self.assertIsNone(expected)
             else:
-                self.assertEqual(entry['hash'], expected)
+                self.assertEqual(entry.objectid, expected)
                 self.assertEqual(entry.metadata, meta[expected])
         def assert_many(cond, expected):
             entries = self.store.query(cond)
-            hashes = set(entry['hash'] for entry in entries)
-            self.assertEqual(hashes, set(expected))
+            objectids = set(entry.objectid for entry in entries)
+            self.assertEqual(objectids, set(expected))
             for entry in entries:
-                self.assertEqual(entry.metadata, meta[entry['hash']])
+                self.assertEqual(entry.metadata, meta[entry.objectid])
 
         files = [
-                ('file1.bin', {}),
-                ('file2.bin', {'a': 'aa', 'c': 12, 'd': 'common'}),
-                 ('dir3', {'a': 'bb', 'c': 41}),
-                 ('dir4', {'c': '12', 'd': 'common'}),
-                 ('file5.bin', {'e': 'aa', 'f': 41}),
+                 ('file1.bin', 'objectid',
+                  {}),
+                 ('file2.bin', 'objectid',
+                  {'a': 'aa', 'c': 12, 'd': 'common'}),
+                 ('dir3', 'objectid',
+                  {'a': 'bb', 'c': 41}),
+                 ('dir4', 'objectid',
+                  {'c': '12', 'd': 'common'}),
+                 ('file5.bin', 'objectid',
+                  {'e': 'aa', 'f': 41}),
             ]
 
-        h = []
+        ids = []
         meta = {}
-        for f, m in files:
+        for f, objectid, m in files:
             if f == 'file1.bin':
                 r = self.store.add_file(self.t(f), m)
             elif f == 'file2.bin':
@@ -194,32 +212,32 @@ class TestStore(unittest.TestCase):
                 r = self.store.add_directory(self.t(f), m)
             else:
                 r = self.store.add(self.t(f), m)
-            h.append(r['hash'])
-            meta[r['hash']] = r.metadata
+            ids.append(r.objectid)
+            meta[r.objectid] = r.metadata
 
-        assert_one({'c': 41}, h[2])
-        assert_many({'c': 41}, [h[2]])
+        assert_one({'c': 41}, ids[2])
+        assert_many({'c': 41}, [ids[2]])
         assert_many({'c': '41'}, [])
         assert_one({'c': '41'}, None)
-        assert_many({}, h)
-        assert_many({'c': '12'}, [h[3]])
-        assert_many({'d': 'common'}, [h[1], h[3]])
-        assert_many({'a': 'aa', 'c': 12}, [h[1]])
+        assert_many({}, ids)
+        assert_many({'c': '12'}, [ids[3]])
+        assert_many({'d': 'common'}, [ids[1], ids[3]])
+        assert_many({'a': 'aa', 'c': 12}, [ids[1]])
         assert_many({'a': 'bb', 'c': 12}, [])
         assert_many({'a': 'aa', 'c': 5}, [])
 
-        assert_many({'c': {'type': 'int', 'gt': 5, 'lt': 15}}, [h[1]])
-        assert_many({'c': {'type': 'int', 'gt': 5}}, [h[1], h[2]])
+        assert_many({'c': {'type': 'int', 'gt': 5, 'lt': 15}}, [ids[1]])
+        assert_many({'c': {'type': 'int', 'gt': 5}}, [ids[1], ids[2]])
 
         with self.assertRaises(TypeError):
             self.store.query({'c': {'whatsthis': 'value'}})
         with self.assertRaises(ValueError):
             self.store.query({'c': {'type': 'int', 'whatsthis': 'value'}})
 
-        self.store.remove(h[1])
+        self.store.remove(ids[1])
         assert_many({'a': 'aa'}, [])
-        assert_many({'d': 'common'}, [h[3]])
-        self.store.remove(h[3])
+        assert_many({'d': 'common'}, [ids[3]])
+        self.store.remove(ids[3])
         assert_many({'d': 'common'}, [])
 
     def test_invalid_add(self):
@@ -242,6 +260,7 @@ class TestStore(unittest.TestCase):
 
     def test_open(self):
         e = self.store.add_file(self.t('file1.bin'), {'findme': 'here'})
+        oid = e.objectid
         h = e['hash']
         entry = self.store.query_one({'findme': 'here'})
         self.assertEqual(entry.metadata, {'hash': h, 'findme': 'here'})
@@ -259,7 +278,7 @@ class TestStore(unittest.TestCase):
             self.assertEqual(fp.read(), c)
         finally:
             fp.close()
-        fp = self.store.open_file(h)
+        fp = self.store.open_file(oid)
         try:
             self.assertEqual(fp.read(), c)
         finally:
@@ -271,9 +290,9 @@ class TestStore(unittest.TestCase):
         self.store.remove(entry)
         self.assertIsNone(self.store.query_one({'findme': 'here'}))
         with self.assertRaises(KeyError):
-            self.store.remove(h)
+            self.store.remove(oid)
         with self.assertRaises(KeyError):
-            self.store.get(h)
+            self.store.get(oid)
 
     @requires_symlink
     def test_internal_symlink(self):

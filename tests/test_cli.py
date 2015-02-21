@@ -14,7 +14,7 @@ from file_archive import FileStore
 from file_archive.compat import StringIO
 import file_archive.main
 
-from .common import temp_dir
+from tests.common import temp_dir
 
 
 def run_program(*args, **kwargs):
@@ -87,14 +87,15 @@ class TestStore(unittest.TestCase):
                             out=out),
                 0)
         h1 = 'fce92fa2647153f7d696a3c1884d732290273102'
-        self.assertEqual(out, [h1])
+        o1 = '8ce67dc4c67401ff8122ecebc98ecee506211f88'
+        self.assertEqual(out, [o1])
         self.assertTrue(os.path.isfile(os.path.join(
                 self.path,
                 'objects',
                 'fc',
                 'e92fa2647153f7d696a3c1884d732290273102')))
         self.assertEqual(
-                self.store.get(h1).metadata,
+                self.store.get(o1).metadata,
                 {'hash': h1, 'a': 'b'})
 
     def test_wrongpath(self):
@@ -102,7 +103,7 @@ class TestStore(unittest.TestCase):
                          1)
 
     def test_query(self):
-        self.store.add_file(self.t('file1.bin'), {'tag': 'testfile', 'test': 1})
+        self.store.add_file(self.t('file1.bin'), {'tag': 'test', 'test': 1})
         self.store.add_file(self.t('file2.bin'), {'tag': 'other', 'test': 2})
 
         def r(*args):
@@ -111,29 +112,33 @@ class TestStore(unittest.TestCase):
             return out
 
         h1 = 'fce92fa2647153f7d696a3c1884d732290273102'
+        o1 = '2da501fcdc9630dc96edaf03a31d9b5088d7ebe2'
         h2 = 'de0ccf54a9c1de0d9fdbf23f71a64762448057d0'
+        o2 = '51a43b0dd01fa86de710150b5e4dac56ebe9f58c'
 
-        out = r('query', 'tag=testfile')
-        self.assertEqual(len(out), 3)
-        self.assertEqual(out[0], h1)
-        m1 = '\t%s\t%s' % ('test', '1')
-        m2 = '\t%s\t%s' % ('tag', 'testfile')
-        self.assertTrue(out[1:] in ([m1, m2], [m2, m1]))
+        out = r('query', 'tag=test')
+        m = [o1,
+             '\t%s\t%s' % ('hash', h1),
+             '\t%s\t%s' % ('tag', 'test'),
+             '\t%s\t%s' % ('test', '1')]
+        self.assertEqual(out, m)
 
         out = r('query', '-d')
         self.assertEqual(eval('\n'.join(out)), {
-                h1: {'tag': 'testfile', 'test': 1},
-                h2: {'tag': 'other', 'test': 2},
+                o1: {'hash': h1, 'tag': 'test', 'test': 1},
+                o2: {'hash': h2, 'tag': 'other', 'test': 2},
             })
         self.assertEqual(out,
                          ['{',
-                          '    "de0ccf54a9c1de0d9fdbf23f71a64762448057d0": {',
+                          '    "%s": {' % o1,
+                          '        "hash": "%s",' % h1,
+                          '        "tag": "test",',
+                          '        "test": 1',
+                          '    },',
+                          '    "%s": {' % o2,
+                          '        "hash": "%s",' % h2,
                           '        "tag": "other",',
                           '        "test": 2',
-                          '    },',
-                          '    "fce92fa2647153f7d696a3c1884d732290273102": {',
-                          '        "tag": "testfile",',
-                          '        "test": 1',
                           '    }',
                           '}'])
 
