@@ -21,6 +21,36 @@ else:
     Row = sqlite3.Row
 
 
+def normalize_metadata(metadata):
+    result = {}
+    for mkey, mvalue in metadata.items():
+        if isinstance(mvalue, string_types):
+            t = 'str'
+        elif isinstance(mvalue, int_types):
+            t = 'int'
+        elif isinstance(mvalue, dict):
+            r = dict(mvalue)
+            try:
+                t = r.pop('type')
+                mvalue = r.pop('value')
+                if r:
+                    raise KeyError
+            except KeyError:
+                raise ValueError("Metadata values should be "
+                                 "dictionaries with the format:\n"
+                                 "{'type': 'int/str/...', "
+                                 "'value': <value>}")
+        else:
+            raise TypeError(
+                    "Metadata values should be int, string, or dictionaries "
+                    "with the format:\n"
+                    "{'type': 'int/str/...', 'value': <value>}")
+        if isinstance(mvalue, bytes):
+            mvalue = mvalue.decode('ascii')
+        result[mkey] = {'type': t, 'value': mvalue}
+    return result
+
+
 class MetadataStore(object):
     """The database holding metadata associated to SHA1 hashs.
     """
@@ -84,6 +114,7 @@ class MetadataStore(object):
         Returns True if it wasn't already stored.
         """
         assert 'hash' in metadata
+        metadata = normalize_metadata(metadata)
         cur = self.conn.cursor()
         try:
             cur.execute(
@@ -96,33 +127,14 @@ class MetadataStore(object):
             if cur.fetchone() is not None:
                 return False
             for mkey, mvalue in metadata.items():
-                if isinstance(mvalue, string_types):
-                    t = 'str'
-                elif isinstance(mvalue, int_types):
-                    t = 'int'
-                elif isinstance(mvalue, dict):
-                    r = dict(mvalue)
-                    try:
-                        t = r.pop('type')
-                        mvalue = r.pop('value')
-                        if r:
-                            raise KeyError
-                    except KeyError:
-                        raise ValueError("Metadata values should be "
-                                         "dictionaries with the format:\n"
-                                         "{'type': 'int/str/...', "
-                                         "'value': <value>}")
-                else:
-                    raise TypeError(
-                            "Metadata values should be dictionaries with "
-                            "the format:\n"
-                            "{'type': 'int/str/...', 'value': <value>}")
+                t = mvalue['type']
+                v = mvalue['value']
                 cur.execute(
                         '''
                         INSERT INTO metadata(objectid, mkey, mvalue_{name})
                         VALUES(:objectid, :key, :value)
-                        '''.format(name=t, hash=mkey, value=mvalue),
-                        {'objectid': objectid, 'key': mkey, 'value': mvalue})
+                        '''.format(name=t, hash=mkey, value=v),
+                        {'objectid': objectid, 'key': mkey, 'value': v})
             self.conn.commit()
             return True
         except:
