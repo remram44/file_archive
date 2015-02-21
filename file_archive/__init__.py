@@ -9,7 +9,7 @@ from file_archive.database import normalize_metadata, MetadataStore
 from file_archive.errors import CreationError, InvalidStore, UsageWarning
 
 
-__version__ = '0.4'
+__version__ = '0.6'
 
 __all__ = ['FileStore']
 
