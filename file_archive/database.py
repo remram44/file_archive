@@ -126,7 +126,7 @@ class MetadataStore(object):
                             '''
                             INSERT INTO metadata(hash, mkey, mvalue_{name})
                             VALUES(:hash, :key, :value)
-                            '''.format(name=t, hash=mkey, value=mvalue),
+                            '''.format(name=t),
                             {'hash': key, 'key': mkey, 'value': mvalue})
             self.conn.commit()
         except:
