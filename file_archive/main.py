@@ -312,7 +312,7 @@ def cmd_view(store, args):
     if args:
         sys.stderr.write(_("view command accepts no argument\n"))
         sys.exit(1)
-    from .viewer import run_viewer
+    from file_archive.viewer import run_viewer
     run_viewer(store)
 
 

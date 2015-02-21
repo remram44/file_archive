@@ -29,9 +29,9 @@ except ImportError:
     sys.exit(3)
 
 
-from .compat import int_types
-from .parser import parse_expression
-from .trans import _, _n
+from file_archive.compat import int_types
+from file_archive.parser import parse_expression
+from file_archive.trans import _, _n
 
 
 system = platform.system().lower()

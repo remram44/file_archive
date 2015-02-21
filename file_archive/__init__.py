@@ -4,9 +4,9 @@ import os
 import shutil
 import warnings
 
-from .compat import string_types, sha1
-from .database import MetadataStore
-from .errors import CreationError, InvalidStore, UsageWarning
+from file_archive.compat import string_types, sha1
+from file_archive.database import MetadataStore
+from file_archive.errors import CreationError, InvalidStore, UsageWarning
 
 
 __version__ = '0.4'

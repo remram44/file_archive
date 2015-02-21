@@ -2,8 +2,8 @@ from __future__ import division, unicode_literals
 
 import sqlite3
 
-from .compat import PY3, string_types, int_types
-from .errors import Error, CreationError, InvalidStore
+from file_archive.compat import PY3, string_types, int_types
+from file_archive.errors import Error, CreationError, InvalidStore
 
 
 __all__ = ['MetadataStore']
