@@ -133,7 +133,7 @@ class MetadataStore(object):
                         '''
                         INSERT INTO metadata(objectid, mkey, mvalue_{name})
                         VALUES(:objectid, :key, :value)
-                        '''.format(name=t, hash=mkey, value=v),
+                        '''.format(name=t),
                         {'objectid': objectid, 'key': mkey, 'value': v})
             self.conn.commit()
             return True
