@@ -1,0 +1,16 @@
+# https://ci.appveyor.com/project/remram44/rpaths
+build: false
+shallow_clone: true
+environment:
+  matrix:
+    - PYTHON: "C:/Python27"
+    - PYTHON: "C:/Python34"
+install:
+  - ps: (new-object net.webclient).DownloadFile('https://raw.github.com/pypa/pip/master/contrib/get-pip.py', 'C:/get-pip.py')
+  - set PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
+  - python C:/get-pip.py
+  - pip install setuptools
+  - pip install tdparser
+  - python setup.py install
+test_script:
+  - python tests
