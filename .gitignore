@@ -1,4 +1,5 @@
 *.py[co]
+doc/_build
 
 # Packages
 *.egg
