@@ -1,5 +1,6 @@
 from __future__ import division, unicode_literals
 
+import json
 import locale
 import os
 import sys
@@ -7,7 +8,7 @@ import tempfile
 import warnings
 
 from file_archive import FileStore, copy_file, BufferedReader
-from file_archive.compat import int_types, unicode_type, quote_str
+from file_archive.compat import int_types, unicode_type
 from file_archive.errors import UsageWarning
 from file_archive.trans import _
 
@@ -193,14 +194,14 @@ def cmd_query(store, args):
                         v = '{"type": "int", "value": %d}' % v
                     else:  # isinstance(v, string_types):
                         assert isinstance(v, unicode_type)
-                        v = '{"type": "str", "value": %s}' % quote_str(v)
+                        v = '{"type": "str", "value": %s}' % json.dumps(v)
                 else:
                     if isinstance(v, int_types):
                         v = '%d' % v
                     else:  # isinstance(v, string_types):
                         assert isinstance(v, unicode_type)
-                        v = quote_str(v)
-                k = quote_str(k)
+                        v = json.dumps(v)
+                k = json.dumps(k)
                 sys.stdout.write("        %s: %s" % (k, v))
             sys.stdout.write('\n    }')
         sys.stdout.write('\n}\n')

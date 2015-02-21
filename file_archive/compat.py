@@ -7,10 +7,6 @@ isinstance() checks:
 sha1:
  * Silently accepts unicode so long as it's ASCII
 
-quote_str:
- * Version of 2's repr() that won't add a 'u' prefix (different versions of
-   Python put it or not)
-
 BytesIO, StringIO
 """
 
@@ -21,7 +17,7 @@ import sys
 
 
 __all__ = ['PY3', 'string_types', 'int_types', 'sha1', 'unicode_type',
-           'quote_str', 'StringIO', 'BytesIO']
+           'StringIO', 'BytesIO']
 
 
 PY3 = sys.version_info >= (3, 0)
@@ -55,7 +51,3 @@ class sha1(object):
 
     def hexdigest(self):
         return self._hash.hexdigest()
-
-
-def quote_str(s):
-    return '"%s"' % s.replace("\\", "\\\\").replace('"', '\\"')

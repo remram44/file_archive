@@ -4,7 +4,7 @@ import os
 import shutil
 import warnings
 
-from file_archive.compat import string_types, sha1, quote_str
+from file_archive.compat import string_types, int_types, unicode_type, sha1
 from file_archive.database import MetadataStore
 from file_archive.errors import CreationError, InvalidStore, UsageWarning
 
@@ -111,8 +111,12 @@ def hash_metadata(metadata):
 
     h = sha1()
     for k, v in sorted(metadata.items(), key=lambda p: p[0]):
-        h.update('%s\n' % quote_str(k))
-        h.update('%s\n' % quote_str(v))
+        h.update('%d:' % k)
+        if isinstance(v, int_types):
+            h.update('i%de' % v)
+        else:  # isinstance(v, string_types):
+            assert isinstance(v, unicode_type)
+            h.update('%d:%s' % (len(v), v))
     return h.hexdigest()
 
 
