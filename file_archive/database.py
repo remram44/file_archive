@@ -65,7 +65,7 @@ class MetadataStore(object):
                     SELECT name FROM sqlite_master WHERE type = 'table'
                     ''')
             tables = set(r['name'] for r in tables.fetchall())
-            if tables != set(['metadata_v2']):
+            if tables != set(['metadata']):
                 raise InvalidStore("Database doesn't have required structure")
         except sqlite3.Error as e:
             raise InvalidStore("Cannot access database: %s: %s" % (
@@ -172,7 +172,8 @@ class MetadataStore(object):
                 {'objectid': objectid})
         result = ResultBuilder(rows)
         try:
-            return next(result)
+            objectid_, metadata = next(result)
+            return metadata
         except StopIteration:
             raise KeyError("No entry with this objectid")
 
@@ -209,7 +210,7 @@ class MetadataStore(object):
         try:
             return next(rows)
         except StopIteration:
-            return None
+            return None, None
 
     def query_all(self, conditions, limit=None):
         """Returns an iterable of rows matching the conditions.

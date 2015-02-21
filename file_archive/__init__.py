@@ -275,7 +275,7 @@ class FileStore(object):
         metadata = dict(metadata)
         metadata['hash'] = filehash
         objectid = hash_metadata(metadata)
-        storedfile = self.get_filename(objectid, make_dir=True)
+        storedfile = self._make_filename(filehash, make_dir=True)
         if not os.path.exists(storedfile):
             copy_file(newfile, storedfile)
         try:
@@ -300,10 +300,9 @@ class FileStore(object):
         metadata = dict(metadata)
         metadata['hash'] = dirhash
         objectid = hash_metadata(metadata)
-        storeddir = self.get_filename(objectid, make_dir=True)
-        if os.path.exists(storeddir):
-            raise KeyError("This directory already exists in the store")
-        copy_directory(newdir, storeddir)
+        storeddir = self._make_filename(dirhash, make_dir=True)
+        if not os.path.exists(storeddir):
+            copy_directory(newdir, storeddir)
         try:
             self.metadata.add(objectid, metadata)
         except:

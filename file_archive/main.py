@@ -120,7 +120,7 @@ def cmd_add(store, args):
         entry = store.add_directory(filename, metadata)
     else:
         entry = store.add_file(filename, metadata)
-    sys.stdout.write('%s\n' % entry['hash'])
+    sys.stdout.write('%s\n' % entry.objectid)
 
 
 def cmd_write(store, args):
@@ -164,18 +164,10 @@ def cmd_query(store, args):
     else:
         entries = store.query(metadata)
 
-    def sort_filter_entry(entry):
-        metadata = entry.metadata
-        return ((k, v)
-                for k, v in sorted(metadata.items(), key=lambda p: p[0])
-                if k != 'hash')
-
     if not pydict:
-        for entry in entries:
-            sys.stdout.write("%s\n" % entry['hash'])
-            for k, v in sort_filter_entry(entry):
-                if k == 'hash':
-                    continue
+        for entry in sorted(entries, key=lambda e: e.objectid):
+            sys.stdout.write("%s\n" % entry.objectid)
+            for k, v in sorted(entry.metadata.items(), key=lambda p: p[0]):
                 if types:
                     if isinstance(v, int_types):
                         v = 'int:%d' % v
@@ -184,10 +176,12 @@ def cmd_query(store, args):
                 sys.stdout.write("\t%s\t%s\n" % (k, v))
     else:
         sys.stdout.write('{')
-        for entry_nb, entry in enumerate(entries):
+        for entry_nb, entry in enumerate(sorted(entries,
+                                                key=lambda e: e.objectid)):
             sys.stdout.write(',\n' if entry_nb > 0 else '\n')
-            sys.stdout.write('    "%s": {' % entry['hash'])
-            for meta_nb, (k, v) in enumerate(sort_filter_entry(entry)):
+            sys.stdout.write('    "%s": {' % entry.objectid)
+            for meta_nb, (k, v) in enumerate(sorted(entry.metadata.items(),
+                                                    key=lambda p: p[0])):
                 sys.stdout.write(',\n' if meta_nb > 0 else '\n')
                 if types:
                     if isinstance(v, int_types):
