@@ -61,9 +61,9 @@ def relativize_link(link, root):
     """
     target = os.path.join(os.path.dirname(link), os.readlink(link))
     target = os.path.realpath(target)
-    root = root + os.path.sep
+    root = os.path.realpath(root) + os.path.sep
     if os.path.commonprefix([target, root]) == root:
-        return os.path.relpath(target, os.path.dirname(link))
+        return os.path.relpath(target, os.path.realpath(os.path.dirname(link)))
     else:
         return None
 
