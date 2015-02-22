@@ -59,20 +59,18 @@ class SearchError(Exception):
 class FileItem(QtGui.QTreeWidgetItem):
     def __init__(self, entry):
         self.entry = entry
-        filehash = entry['hash']
-        QtGui.QTreeWidgetItem.__init__(self, [filehash])
-        self.hash = filehash
+        QtGui.QTreeWidgetItem.__init__(self, [entry.objectid])
 
 
 class MetadataItem(FileItem):
-    def __init__(self, filehash, key, value):
+    def __init__(self, entry, key, value):
         if isinstance(value, int_types):
             t = 'int'
             value = '%d' % value
         else:  # isinstance(v, string_types):
             t = 'str'
         QtGui.QTreeWidgetItem.__init__(self, [key, value, t])
-        self.hash = filehash
+        self.entry = entry
 
 
 class StoreViewerWindow(QtGui.QMainWindow):
@@ -169,11 +167,11 @@ class StoreViewerWindow(QtGui.QMainWindow):
 
         if len(query.split()) == 1 and all(o not in query.strip()
                                            for o in '=<>'):
-            h = query.strip()
+            objectid = query.strip()
             try:
-                entries = [self.store.get(h)]
+                entries = [self.store.get(objectid)]
             except KeyError:
-                error = _("hash '{h}' not found", h=h)
+                error = _("objectid '{oid}' not found", oid=objectid)
 
         else:
             try:
@@ -200,9 +198,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
                 self._result_tree.addTopLevelItem(file_item)
                 self._result_tree.setFirstItemColumnSpanned(file_item, True)
                 for k, v in entry.metadata.items():
-                    if k == 'hash':
-                        continue
-                    file_item.addChild(MetadataItem(entry['hash'], k, v))
+                    file_item.addChild(MetadataItem(entry, k, v))
 
                 if i >= self.MAX_RESULTS:
                     last_item = QtGui.QTreeWidgetItem(
@@ -238,7 +234,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
     def _openfile(self):
         item = self._result_tree.currentItem()
         if item is not None:
-            openfile(self.store.get_filename(item.hash))
+            openfile(item.entry.filename)
 
     def _delete(self):
         items = self._result_tree.selectedItems()
@@ -256,12 +252,12 @@ class StoreViewerWindow(QtGui.QMainWindow):
                 QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel,
                 QtGui.QMessageBox.Cancel)
         if confirm == QtGui.QMessageBox.Ok:
-            hashes = set([i.hash for i in items])
+            ids = set([i.entry.objectid for i in items])
             i = 0
             while i < self._result_tree.topLevelItemCount():
-                h = self._result_tree.topLevelItem(i).hash
-                if h in hashes:
-                    self.store.remove(h)
+                oid = self._result_tree.topLevelItem(i).entry.objectid
+                if oid in ids:
+                    self.store.remove(oid)
                     self._result_tree.takeTopLevelItem(i)
                 else:
                     i += 1
