@@ -1,7 +1,12 @@
+import os
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
+
+
+# pip workaround
+os.chdir(os.path.abspath(os.path.dirname(__file__)))
 
 
 description = """
@@ -22,7 +27,7 @@ setup(name='file_archive',
         'console_scripts': [
           'file_archive = file_archive.entry_point:entry_point']},
       description="A file store with searchable metadata",
-      author="NYU-Poly",
+      author="Remi Rampin",
       author_email='vistrails-dev@vistrails.org',
       url='http://github.com/remram44/file_archive',
       long_description=description,
@@ -31,7 +36,7 @@ setup(name='file_archive',
         'file_archive': ['l10n/*/LC_MESSAGES/*.mo'],
       },
       zip_safe=True,
-      keywords=['file', 'archive', 'metadata'],
+      keywords=['file', 'archive', 'metadata', 'vida', 'nyu'],
       classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: BSD License',
