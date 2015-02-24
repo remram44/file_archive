@@ -7,6 +7,15 @@ from tdparser.topdown import EndToken
 __all__ = ['parse_expression', 'parse_expressions']
 
 
+def escape_string(text):
+    return '"%s"' % text.replace('\\', '\\\\').replace('"', '\\"')
+
+
+def unescape_string(text):
+    assert text[0] == text[-1] == '"'
+    return text[1:-1].replace('\\"', '"').replace('\\\\', '\\')
+
+
 lexer = Lexer()
 
 
@@ -35,7 +44,7 @@ class String(Token):
 
     def __init__(self, text):
         Token.__init__(self, text)
-        self.value = text[1:-1].replace('\\"', '"').replace('\\\\', '\\')
+        self.value = unescape_string(text)
 
     def nud(self, context):
         return self
