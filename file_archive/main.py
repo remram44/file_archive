@@ -226,7 +226,7 @@ def cmd_print(store, args):
         try:
             entry = store.get(h)
         except KeyError:
-            sys.stderr.write(_("Hash not found\n"))
+            sys.stderr.write(_("Objectid not found\n"))
             sys.exit(2)
     else:
         entries = store.query(metadata)
