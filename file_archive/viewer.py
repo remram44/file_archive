@@ -193,7 +193,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
                 error = e.args[0]
             else:
                 conditions = self._alter_search_conditions(conditions)
-                entries = self.store.query(conditions)
+                entries = self.store.query(conditions, limit=self.MAX_RESULTS)
 
         self._result_tree.clear()
 
@@ -213,7 +213,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
                 for k, v in entry.metadata.items():
                     file_item.addChild(MetadataItem(entry, k, v))
 
-                if i >= self.MAX_RESULTS:
+                if i + 1 == self.MAX_RESULTS:
                     last_item = QtGui.QTreeWidgetItem(
                             [_("... stripped after {nb} results...",
                                nb=self.MAX_RESULTS)])
