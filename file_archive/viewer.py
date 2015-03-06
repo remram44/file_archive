@@ -16,7 +16,7 @@ try:
         except ValueError:
             pass
 
-    from PyQt4 import QtGui
+    from PyQt4 import QtCore, QtGui
 except ImportError:
     sys.stderr.write("PyQt4 is required by 'file_archive view'\n")
     sys.exit(3)
@@ -29,6 +29,7 @@ except ImportError:
     sys.exit(3)
 
 
+from file_archive import hash_metadata
 from file_archive.compat import int_types
 from file_archive.parser import parse_expression
 from file_archive.trans import _, _n
@@ -145,6 +146,11 @@ class StoreViewerWindow(QtGui.QMainWindow):
         copy_button.clicked.connect(self._copy_objectid)
         buttons.append(('single', copy_button))
 
+        # Edit metadata button
+        edit_button = QtGui.QPushButton(_("Edit metadata..."))
+        edit_button.clicked.connect(self._edit_metadata)
+        buttons.append(('single', edit_button))
+
         # Delete button, removes what's selected (with confirmation)
         remove_button = QtGui.QPushButton(_("Delete"))
         remove_button.clicked.connect(self._delete)
@@ -250,6 +256,27 @@ class StoreViewerWindow(QtGui.QMainWindow):
         clipboard = QtGui.QApplication.clipboard()
         clipboard.setText(objectid)
 
+    def _edit_metadata(self):
+        items = self._result_tree.selectedItems()
+        if not items:
+            return
+        entry = items[0].entry
+
+        editor = MetadataEditor(entry, self)
+        editor.show()
+
+    def change_metadata(self, old_objectid, metadata, remove_original=False):
+        new_objectid = hash_metadata(metadata)
+        if new_objectid == old_objectid:
+            return
+
+        self.store.metadata.add(new_objectid, metadata)
+
+        if remove_original:
+            self.store.remove(old_objectid)
+
+        self._search()
+
     def _delete(self):
         items = self._result_tree.selectedItems()
         if not items:
@@ -275,6 +302,141 @@ class StoreViewerWindow(QtGui.QMainWindow):
                     self._result_tree.takeTopLevelItem(i)
                 else:
                     i += 1
+
+
+class MetadataEditor(QtGui.QDialog):
+    def __init__(self, entry, parent):
+        QtGui.QDialog.__init__(self, parent, QtCore.Qt.Dialog)
+        self.setWindowModality(QtCore.Qt.ApplicationModal)
+
+        self._entry = entry
+        self._parent = parent
+
+        label = QtGui.QLabel("Editing entry %s" % entry.objectid)
+
+        self._table = QtGui.QTableWidget()
+        self._table.setColumnCount(3)
+        self._table.setHorizontalHeaderLabels(['key', 'type', 'value'])
+        self._table.setSortingEnabled(True)
+        self._table.sortByColumn(0, QtCore.Qt.AscendingOrder)
+        self._table.resizeColumnsToContents()
+        scrollarea = QtGui.QScrollArea()
+        scrollarea.setWidgetResizable(True)
+        scrollarea.setWidget(self._table)
+
+        plus = QtGui.QPushButton(_("+"))
+        plus.clicked.connect(self._add_row)
+        minus = QtGui.QPushButton(_("-"))
+        minus.clicked.connect(self._remove_row)
+        controls = QtGui.QVBoxLayout()
+        controls.addWidget(plus)
+        controls.addWidget(minus)
+
+        table_row = QtGui.QHBoxLayout()
+        table_row.addWidget(scrollarea)
+        table_row.addLayout(controls)
+
+        self._remove_original = QtGui.QCheckBox(_("Remove original entry"))
+        self._remove_original.setChecked(False)
+        self._remove_original.stateChanged.connect(self._mode_changed)
+
+        self._ok_button = QtGui.QPushButton(_("Create new entry"))
+        self._ok_button.clicked.connect(self._ok_clicked)
+        cancel_button = QtGui.QPushButton(_("Cancel"))
+        cancel_button.clicked.connect(lambda: self.setVisible(False))
+        buttons = QtGui.QHBoxLayout()
+        buttons.addStretch()
+        buttons.addWidget(self._ok_button)
+        buttons.addWidget(cancel_button)
+
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(label)
+        layout.addLayout(table_row)
+        layout.addWidget(self._remove_original)
+        layout.addLayout(buttons)
+        self.setLayout(layout)
+
+        self._table.setSortingEnabled(False)
+        for k, v in self._entry.metadata.items():
+            if k == 'hash':
+                continue
+            self._add_row(k, v, sorting_disabled=True)
+        self._table.setSortingEnabled(True)
+
+    def _add_row(self, key=None, value=None, sorting_disabled=False):
+        row = self._table.rowCount()
+        if not sorting_disabled:
+            self._table.setSortingEnabled(False)
+        self._table.insertRow(row)
+
+        typeedit = QtGui.QComboBox()
+        typeedit.addItems(['int', 'str'])
+        self._table.setCellWidget(row, 1, typeedit)
+
+        if key is not None:
+            keyitem = QtGui.QTableWidgetItem(key)
+            self._table.setItem(row, 0, keyitem)
+        if value is not None:
+            if isinstance(value, int_types):
+                typeedit.setCurrentIndex(0)
+                value = '%s' % value
+            else:
+                typeedit.setCurrentIndex(1)
+            valueitem = QtGui.QTableWidgetItem(value)
+            self._table.setItem(row, 2, valueitem)
+
+        if not sorting_disabled:
+            self._table.setSortingEnabled(True)
+
+    def _remove_row(self):
+        row = self._table.currentRow()
+        self._table.removeRow(row)
+
+    def _mode_changed(self, remove_original):
+        if remove_original:
+            self._ok_button.setText(_("Replace entry"))
+        else:
+            self._ok_button.setText(_("Create new entry"))
+
+    def _ok_clicked(self):
+        error = None
+
+        metadata = {}
+
+        for row in range(self._table.rowCount()):
+            key = self._table.item(row, 0).text()
+            type_ = self._table.cellWidget(row, 1).currentText()
+            value = self._table.item(row, 2).text()
+
+            if not key:
+                error = _("Empty key")
+
+            if type_ == 'int':
+                try:
+                    value = int(value)
+                except ValueError:
+                    error = (_("Invalid int value for %(key)s (row %(row)d)") %
+                             {'key': key, 'row': row + 1})
+            elif type_ != 'str':
+                error = _("Invalid type (row %d)") % (row + 1)
+
+            if key in metadata:
+                error = _("Duplicate key %s" % key)
+
+            if error is not None:
+                break
+
+            metadata[key] = {'type': type_, 'value': value}
+
+        if error is not None:
+            QtGui.QMessageBox.critical(self, _("Invalid values"), error)
+            return
+
+        metadata['hash'] = self._entry.metadata['hash']
+
+        self._parent.change_metadata(self._entry.objectid, metadata,
+                                     self._remove_original.isChecked())
+        self.setVisible(False)
 
 
 def run_viewer(store):
