@@ -128,6 +128,8 @@ class StoreViewerWindow(QtGui.QMainWindow):
         widget.setLayout(layout)
         self.setCentralWidget(widget)
 
+        self._search()
+
     def _create_buttons(self):
         buttons = []
 
