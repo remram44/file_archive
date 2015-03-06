@@ -99,7 +99,6 @@ class StoreViewerWindow(QtGui.QMainWindow):
         # Search button
         self._searchbutton = QtGui.QPushButton(_("Search"))
         self._searchbutton.clicked.connect(self._search)
-        self._set_needs_refresh(True)
         searchbar.addWidget(self._searchbutton)
 
         results = QtGui.QHBoxLayout()
