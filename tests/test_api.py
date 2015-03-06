@@ -194,15 +194,15 @@ class TestStore(unittest.TestCase):
                 self.assertEqual(entry.metadata, meta[entry.objectid])
 
         files = [
-                 ('file1.bin', 'objectid',
+                 ('file1.bin', '6de19c2c8a867f2d9a2f663e036a6a70be8da205',
                   {}),
-                 ('file2.bin', 'objectid',
+                 ('file2.bin', '30df4f59cb6403af6b153306edd7f0d2d48afbb2',
                   {'a': 'aa', 'c': 12, 'd': 'common'}),
-                 ('dir3', 'objectid',
+                 ('dir3', 'be511e1f41f5342a01bbc25bf3e5efeaf4b4502f',
                   {'a': 'bb', 'c': 41}),
-                 ('dir4', 'objectid',
+                 ('dir4', 'ba1f71ab8c587ce78f0209c11e1ab742ba16b7ef',
                   {'c': '12', 'd': 'common'}),
-                 ('file5.bin', 'objectid',
+                 ('file5.bin', '9b54725b357d9c7dd58ca83708ca4e73c7e44fd3',
                   {'e': 'aa', 'f': 41}),
             ]
 
@@ -221,6 +221,7 @@ class TestStore(unittest.TestCase):
             else:
                 r = self.store.add(self.t(f), m)
             ids.append(r.objectid)
+            self.assertEqual(objectid, r.objectid)
             meta[r.objectid] = r.metadata
 
         assert_one({'c': 41}, ids[2])
