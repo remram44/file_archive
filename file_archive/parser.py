@@ -73,7 +73,21 @@ class Operator(Token):
         return left.text, {'type': right.type, cond: right.value}
 
 
-lexer.register_tokens(Key, Number, String, Operator)
+class ExistType(Token):
+    regexp = r':'
+    lbp = 10
+
+    def led(self, left, context):
+        right = context.expression(self.lbp)
+        if not isinstance(left, Key):
+            raise ParserError("Typed existence condition does not involve a "
+                              "key")
+        elif not isinstance(right, Key) or right.text not in ('int', 'str'):
+            raise ParserError("Existence condition missing type")
+        return left.text, {'type': right.text}
+
+
+lexer.register_tokens(Key, Number, String, Operator, ExistType)
 
 
 def _update_conditions(conditions, expr):
