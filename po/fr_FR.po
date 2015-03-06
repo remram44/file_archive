@@ -1,15 +1,15 @@
 # file_archive: file store with searchable metadata.
-# Copyright (C) 2013 NYU-Poly
+# Copyright (C) 2013-2015 NYU-Poly
 # This file is distributed under the same license as the file_archive package.
 # 
 # Translators:
-# Rémi Rampin <remirampin@gmail.com>, 2013-2014
+# Rémi Rampin <remirampin@gmail.com>, 2013-2015
 msgid ""
 msgstr ""
-"Project-Id-Version: file_archive 0.4\n"
+"Project-Id-Version: file_archive 0.6\n"
 "Report-Msgid-Bugs-To: remirampin@gmail.com\n"
-"POT-Creation-Date: 2014-01-23 14:42-0500\n"
-"PO-Revision-Date: 2014-01-24 15:47+0000\n"
+"POT-Creation-Date: 2015-03-06 19:16+0000\n"
+"PO-Revision-Date: 2015-03-06 19:52+0000\n"
 "Last-Translator: Rémi Rampin <remirampin@gmail.com>\n"
 "Language-Team: French (France) (http://www.transifex.com/projects/p/file_archive/language/fr_FR/)\n"
 "MIME-Version: 1.0\n"
@@ -18,80 +18,80 @@ msgstr ""
 "Language: fr_FR\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: file_archive/main.py:25
+#: file_archive/main.py:28
 msgid ""
 "Metadata should have format key=value, key=type:value (eg. age=int:23) or "
 "key=type:req (eg. age=int:>21)\n"
 msgstr "Les métadonnées doivent être dans le format clef=valeur, clef=type:valeur (ex age=int:23) ou clef=type:requête (ex age=int:>18)\n"
 
-#: file_archive/main.py:43 file_archive/main.py:94
+#: file_archive/main.py:46 file_archive/main.py:97
 #, python-brace-format
 msgid ""
 "Metadata has unknown type '{t}'! Only 'str' and 'int' are supported.\n"
 "If you meant a string with a ':', use 'str:mystring'"
 msgstr "Une métadonnée a un type inconnu '{t}' ! Seuls \"str\" et \"int\" sont supportés.\nSi vous vouliez une chaîne contenant un \":\", utilisez \"str:chaine\"."
 
-#: file_archive/main.py:55
+#: file_archive/main.py:58
 #, python-brace-format
 msgid "Differing types for conditions on key {k}: {t1}, {t2}\n"
 msgstr "Types différents pour les conditions sur la clef {k} : {t1}, {t2}\n"
 
-#: file_archive/main.py:60
+#: file_archive/main.py:63
 #, python-brace-format
 msgid "Multiple conditions {cond} on key {k}\n"
 msgstr "Plusieurs conditions {cond} sur la clef {k}\n"
 
-#: file_archive/main.py:77
+#: file_archive/main.py:80
 msgid ""
 "Metadata should have format key=value or key=type:value (eg. age=int:23)\n"
 msgstr "Les métadonnées doivent être dans le format clef=valeur ou clef=type:valeur (ex age=int:23)\n"
 
-#: file_archive/main.py:109
+#: file_archive/main.py:112
 msgid "Missing filename\n"
 msgstr "Nom de fichier manquant\n"
 
-#: file_archive/main.py:113
+#: file_archive/main.py:116
 #, python-brace-format
 msgid "Path does not exist: {path}\n"
 msgstr "Le nom de fichier n'existe pas : {path}\n"
 
-#: file_archive/main.py:155 file_archive/main.py:217
+#: file_archive/main.py:158 file_archive/main.py:221
 #, python-brace-format
 msgid "Unknown option: {opt}\n"
 msgstr "Option inconnue : {opt}\n"
 
-#: file_archive/main.py:225
-msgid "Hash not found\n"
-msgstr "Hash introuvable\n"
+#: file_archive/main.py:229
+msgid "Objectid not found\n"
+msgstr "Objectid introuvable\n"
 
-#: file_archive/main.py:232
+#: file_archive/main.py:236
 msgid "No match found\n"
 msgstr "Aucune correspondance\n"
 
-#: file_archive/main.py:239
+#: file_archive/main.py:243
 msgid "Warning: more matching files exist\n"
 msgstr "Attention : il y a plusieurs fichiers correspondant\n"
 
-#: file_archive/main.py:252
+#: file_archive/main.py:256
 msgid "Error: match found but is a directory\n"
 msgstr "Erreur : correspondance trouvée mais c'est un dossier\n"
 
-#: file_archive/main.py:282
+#: file_archive/main.py:286
 #, python-brace-format
 msgid ""
 "Error: not removing files unconditionally unless -f is given\n"
 "(command would have removed {nb} files)\n"
 msgstr "Erreur : pas de suppression inconditionnelle sauf si -f est passé\n(la commande aurait supprimé {nb} fichiers)\n"
 
-#: file_archive/main.py:297
+#: file_archive/main.py:301
 msgid "verify command accepts no argument\n"
 msgstr "La commande verify n'accepte aucun paramètre\n"
 
-#: file_archive/main.py:304
+#: file_archive/main.py:308
 msgid "view command accepts no argument\n"
 msgstr "La commande view n'accepte aucun paramètre\n"
 
-#: file_archive/main.py:325
+#: file_archive/main.py:328
 #, python-brace-format
 msgid ""
 "usage: {bin} <store> create\n"
@@ -106,12 +106,12 @@ msgid ""
 "   or: {bin} <store> view\n"
 msgstr "utilisation : {bin} <dépôt> create\n   ou: {bin} <dépôt> add <fichier> [clef1=valeur1] [...]\n   ou: {bin} <dépôt> write [clef1=valeur1] [...]\n   ou: {bin} <dépôt> query [-d] [-t] [clef1=valeur1] [...]\n   ou: {bin} <dépôt> print [-m] [-t] <hash> [...]\n   ou: {bin} <dépôt> print [-m] [-t] [clef1=valeur1] [...]\n   ou: {bin} <dépôt> remove [-f] <hash>\n   ou: {bin} <dépôt> remove [-f] <clef1=valeur1> [...]\n   ou: {bin} <dépôt> verify\n   ou: {bin} <dépôt> view\n"
 
-#: file_archive/main.py:348
+#: file_archive/main.py:351
 #, python-brace-format
 msgid "Can't create store: {err}\n"
 msgstr "Impossible de créer le dépôt  {err}\n"
 
-#: file_archive/main.py:355
+#: file_archive/main.py:358
 #, python-brace-format
 msgid "Invalid store: {err}\n"
 msgstr "Dépôt invalide : {err}\n"
@@ -120,56 +120,111 @@ msgstr "Dépôt invalide : {err}\n"
 msgid "file_archive viewer"
 msgstr "Explorateur de file_archive"
 
-#: file_archive/viewer.py:92
+#: file_archive/viewer.py:94
 msgid "Enter query here"
 msgstr "Entrez la requête ici"
 
-#: file_archive/viewer.py:98
+#: file_archive/viewer.py:100
 msgid "Search"
 msgstr "Rechercher"
 
-#: file_archive/viewer.py:108
+#: file_archive/viewer.py:110
 msgid "Key"
 msgstr "Clef"
 
-#: file_archive/viewer.py:108
+#: file_archive/viewer.py:110
 msgid "Value"
 msgstr "Valeur"
 
-#: file_archive/viewer.py:108
+#: file_archive/viewer.py:110
 msgid "Type"
 msgstr "Type"
 
-#: file_archive/viewer.py:135
+#: file_archive/viewer.py:139
 msgid "Open"
 msgstr "Ouvrir"
 
-#: file_archive/viewer.py:143
+#: file_archive/viewer.py:147
+msgid "Copy ID"
+msgstr "Copier l'ID"
+
+#: file_archive/viewer.py:152
+msgid "Edit metadata..."
+msgstr "Editer les métadonnées..."
+
+#: file_archive/viewer.py:157
 msgid "Delete"
 msgstr "Supprimer"
 
-#: file_archive/viewer.py:170
+#: file_archive/viewer.py:187
 #, python-brace-format
-msgid "hash '{h}' not found"
-msgstr "hash \"{h}\" introuvable"
+msgid "objectid '{oid}' not found"
+msgstr "objectid '{oid}' introuvable"
 
-#: file_archive/viewer.py:202
+#: file_archive/viewer.py:218
 #, python-brace-format
 msgid "... stripped after {nb} results..."
 msgstr "... limité à {nb} résultats..."
 
-#: file_archive/viewer.py:213
+#: file_archive/viewer.py:229
 msgid "No matches"
 msgstr "Aucune correspondance"
 
-#: file_archive/viewer.py:242
+#: file_archive/viewer.py:288
 msgid "Are you sure?"
 msgstr "Êtes-vous certain ?"
 
-#: file_archive/viewer.py:243
+#: file_archive/viewer.py:289
 #, python-brace-format
 msgid "You are about to delete {num} entry from the store. Please confirm."
 msgid_plural ""
 "You are about to delete {num} entries from the store. Please confirm."
 msgstr[0] "Vous êtes sur le point de supprimer {num} entrée depuis le dépôt. Merci de confirmer."
 msgstr[1] "Vous êtes sur le point de supprimer {num} entrées depuis le dépôt. Merci de confirmer."
+
+#: file_archive/viewer.py:329
+msgid "+"
+msgstr "+"
+
+#: file_archive/viewer.py:331
+msgid "-"
+msgstr "-"
+
+#: file_archive/viewer.py:341
+msgid "Remove original entry"
+msgstr "Supprimer l'entrée originale"
+
+#: file_archive/viewer.py:345 file_archive/viewer.py:401
+msgid "Create new entry"
+msgstr "Créer l'entrée"
+
+#: file_archive/viewer.py:347
+msgid "Cancel"
+msgstr "Annuler"
+
+#: file_archive/viewer.py:399
+msgid "Replace entry"
+msgstr "Remplacer l'entrée"
+
+#: file_archive/viewer.py:414
+msgid "Empty key"
+msgstr "Clef vide"
+
+#: file_archive/viewer.py:420
+#, python-format
+msgid "Invalid int value for %(key)s (row %(row)d)"
+msgstr "Valeur numérique invalide pour %(key)s (ligne %(row)d)"
+
+#: file_archive/viewer.py:423
+#, python-format
+msgid "Invalid type (row %d)"
+msgstr "Type invalide (ligne %d)"
+
+#: file_archive/viewer.py:426
+#, python-format
+msgid "Duplicate key %s"
+msgstr "Clef en double %s"
+
+#: file_archive/viewer.py:434
+msgid "Invalid values"
+msgstr "Valeurs invalides"
