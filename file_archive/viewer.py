@@ -140,6 +140,11 @@ class StoreViewerWindow(QtGui.QMainWindow):
         else:
             open_button.setEnabled(False)
 
+        # Copy hash button
+        copy_button = QtGui.QPushButton(_("Copy ID"))
+        copy_button.clicked.connect(self._copy_objectid)
+        buttons.append(('single', copy_button))
+
         # Delete button, removes what's selected (with confirmation)
         remove_button = QtGui.QPushButton(_("Delete"))
         remove_button.clicked.connect(self._delete)
@@ -235,6 +240,15 @@ class StoreViewerWindow(QtGui.QMainWindow):
         item = self._result_tree.currentItem()
         if item is not None:
             openfile(item.entry.filename)
+
+    def _copy_objectid(self):
+        items = self._result_tree.selectedItems()
+        if not items:
+            return
+        objectid = items[0].entry.objectid
+
+        clipboard = QtGui.QApplication.clipboard()
+        clipboard.setText(objectid)
 
     def _delete(self):
         items = self._result_tree.selectedItems()
