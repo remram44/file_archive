@@ -314,7 +314,7 @@ class MetadataEditor(QtGui.QDialog):
         self._entry = entry
         self._parent = parent
 
-        label = QtGui.QLabel("Editing entry %s" % entry.objectid)
+        label = QtGui.QLabel(_("Editing entry %s") % entry.objectid)
 
         self._table = QtGui.QTableWidget()
         self._table.setColumnCount(3)
