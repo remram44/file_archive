@@ -280,7 +280,7 @@ class FileStore(object):
             copy_file(newfile, storedfile)
         try:
             self.metadata.add(objectid, metadata)
-        except:
+        except:  # pragma: no cover
             os.remove(storedfile)
             raise
         return Entry(self, objectid, metadata)
@@ -305,7 +305,7 @@ class FileStore(object):
             copy_directory(newdir, storeddir)
         try:
             self.metadata.add(objectid, metadata)
-        except:
+        except:  # pragma: no cover
             shutil.rmtree(storeddir)
             raise
         return Entry(self, objectid, metadata)

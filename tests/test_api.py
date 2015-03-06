@@ -135,7 +135,15 @@ class TestStore(unittest.TestCase):
         self.assertEqual(list(self.store.query({})), [])
 
     def test_putfile(self):
-        entry1 = self.store.add_file(self.t('file1.bin'), {'a': 'b'})
+        with self.assertRaises(ValueError):
+            self.store.add_file(
+                    self.t('file1.bin'),
+                    {'a': {'type': 'str', 'value': 'b', 'other': 'dont'}})
+        with self.assertRaises(TypeError):
+            self.store.add_file(self.t('file1.bin'), {'a': object()})
+
+        entry1 = self.store.add_file(self.t('file1.bin'),
+                                     {'a': {'type': 'str', 'value': 'b'}})
         h1 = 'fce92fa2647153f7d696a3c1884d732290273102'
         o1 = '8ce67dc4c67401ff8122ecebc98ecee506211f88'
         self.assertEqual(entry1['hash'], h1)
