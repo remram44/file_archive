@@ -234,6 +234,9 @@ class TestStore(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.store.query({'c': {'type': 'int', 'whatsthis': 'value'}})
 
+        assert_many({'a': {'type': 'str'}}, [ids[1], ids[2]])
+        assert_one({'f': {'type': 'int'}}, ids[4])
+
         self.store.remove(ids[1])
         assert_many({'a': 'aa'}, [])
         assert_many({'d': 'common'}, [ids[3]])
