@@ -1,8 +1,5 @@
 import os
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup
 
 
 # pip workaround
@@ -47,4 +44,4 @@ setup(name='file_archive',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'Topic :: System :: Archiving'],
-      requires=['tdparser (>=1.1.4)'])
+      install_requires=['tdparser>=1.1.4'])
