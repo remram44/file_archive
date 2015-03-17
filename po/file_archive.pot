@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: file_archive 0.6\n"
 "Report-Msgid-Bugs-To: remirampin@gmail.com\n"
-"POT-Creation-Date: 2015-03-06 19:16+0000\n"
+"POT-Creation-Date: 2015-03-17 15:37-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -127,53 +127,53 @@ msgstr ""
 msgid "Search"
 msgstr ""
 
-#: file_archive/viewer.py:110
+#: file_archive/viewer.py:109
 msgid "Key"
 msgstr ""
 
-#: file_archive/viewer.py:110
+#: file_archive/viewer.py:109
 msgid "Value"
 msgstr ""
 
-#: file_archive/viewer.py:110
+#: file_archive/viewer.py:109
 msgid "Type"
 msgstr ""
 
-#: file_archive/viewer.py:139
+#: file_archive/viewer.py:138
 msgid "Open"
 msgstr ""
 
-#: file_archive/viewer.py:147
+#: file_archive/viewer.py:146
 msgid "Copy ID"
 msgstr ""
 
-#: file_archive/viewer.py:152
+#: file_archive/viewer.py:151
 msgid "Edit metadata..."
 msgstr ""
 
-#: file_archive/viewer.py:157
+#: file_archive/viewer.py:156
 msgid "Delete"
 msgstr ""
 
-#: file_archive/viewer.py:187
+#: file_archive/viewer.py:186
 #, python-brace-format
 msgid "objectid '{oid}' not found"
 msgstr ""
 
-#: file_archive/viewer.py:218
+#: file_archive/viewer.py:217
 #, python-brace-format
 msgid "... stripped after {nb} results..."
 msgstr ""
 
-#: file_archive/viewer.py:229
+#: file_archive/viewer.py:228
 msgid "No matches"
 msgstr ""
 
-#: file_archive/viewer.py:288
+#: file_archive/viewer.py:287
 msgid "Are you sure?"
 msgstr ""
 
-#: file_archive/viewer.py:289
+#: file_archive/viewer.py:288
 #, python-brace-format
 msgid "You are about to delete {num} entry from the store. Please confirm."
 msgid_plural ""
@@ -181,49 +181,54 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: file_archive/viewer.py:329
+#: file_archive/viewer.py:316
+#, python-format
+msgid "Editing entry %s"
+msgstr ""
+
+#: file_archive/viewer.py:328
 msgid "+"
 msgstr ""
 
-#: file_archive/viewer.py:331
+#: file_archive/viewer.py:330
 msgid "-"
 msgstr ""
 
-#: file_archive/viewer.py:341
+#: file_archive/viewer.py:340
 msgid "Remove original entry"
 msgstr ""
 
-#: file_archive/viewer.py:345 file_archive/viewer.py:401
+#: file_archive/viewer.py:344 file_archive/viewer.py:400
 msgid "Create new entry"
 msgstr ""
 
-#: file_archive/viewer.py:347
+#: file_archive/viewer.py:346
 msgid "Cancel"
 msgstr ""
 
-#: file_archive/viewer.py:399
+#: file_archive/viewer.py:398
 msgid "Replace entry"
 msgstr ""
 
-#: file_archive/viewer.py:414
+#: file_archive/viewer.py:413
 msgid "Empty key"
 msgstr ""
 
-#: file_archive/viewer.py:420
+#: file_archive/viewer.py:419
 #, python-format
 msgid "Invalid int value for %(key)s (row %(row)d)"
 msgstr ""
 
-#: file_archive/viewer.py:423
+#: file_archive/viewer.py:422
 #, python-format
 msgid "Invalid type (row %d)"
 msgstr ""
 
-#: file_archive/viewer.py:426
+#: file_archive/viewer.py:425
 #, python-format
 msgid "Duplicate key %s"
 msgstr ""
 
-#: file_archive/viewer.py:434
+#: file_archive/viewer.py:433
 msgid "Invalid values"
 msgstr ""
