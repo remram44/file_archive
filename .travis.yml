@@ -10,5 +10,7 @@ env:
   - TOX_ENV=flake8
 install:
   - pip install tox
+  - "[ coverage != $TOX_ENV ] || pip install codecov"
 script:
   - tox -e $TOX_ENV
+  - "[ coverage != $TOX_ENV ] || codecov"
