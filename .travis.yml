@@ -1,15 +1,24 @@
 language: python
 sudo: false
-python: 2.7
+python:
+  - "2.6"
+  - "2.7"
+  - "3.2"
+  - "3.3"
+  - "3.4"
+  - "3.5"
 env:
-  - TOX_ENV=py26
-  - TOX_ENV=py27
-  - TOX_ENV=py33
-  - TOX_ENV=coverage
-  - TOX_ENV=flake8
+  - TEST_MODE=tests
 install:
-  - pip install tox
-  - "[ coverage != $TOX_ENV ] || pip install codecov"
+  - pip install tdparser
+  - "[ 2.6 != $TRAVIS_PYTHON_VERSION ] || pip install unittest2"
+  - "[ coverage != $TEST_MODE ] || pip install codecov"
+  - "[ flake8 != $TEST_MODE ] || pip install flake8"
 script:
-  - tox -e $TOX_ENV
-  - "[ coverage != $TOX_ENV ] || codecov"
+    - "if [ coverage = $TEST_MODE ]; then coverage run --source=file_archive --branch tests/__main__.py && codecov; elif [ flake8 = $TEST_MODE ]; then flake8 --ignore=E126 file_archive; else python tests; fi"
+matrix:
+  include:
+    - python: "2.7"
+      env: TEST_MODE=coverage
+    - python: "2.7"
+      env: TEST_MODE=flake8
