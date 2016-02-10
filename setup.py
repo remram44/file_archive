@@ -18,7 +18,7 @@ Its purpose is to be used as a persistent file store for the VisTrails workflow
 and provenance management system: http://www.vistrails.org/
 """
 setup(name='file_archive',
-      version='0.6',
+      version='0.7',
       packages=['file_archive'],
       entry_points={
           'console_scripts': [
@@ -35,11 +35,12 @@ setup(name='file_archive',
       zip_safe=True,
       keywords=['file', 'archive', 'metadata', 'vida', 'nyu'],
       classifiers=[
-          'Development Status :: 3 - Alpha',
+          'Development Status :: 4 - Beta',
           'License :: OSI Approved :: BSD License',
           'Programming Language :: Python :: 2',
           'Programming Language :: Python :: 3',
           'Environment :: Console',
+          'Environment :: X11 Applications :: Qt',
           'Operating System :: OS Independent',
           'Intended Audience :: Developers',
           'Intended Audience :: Science/Research',
