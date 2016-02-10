@@ -24,7 +24,7 @@ def get_qt():
     qtapi = os.environ.get('QT_API', 'pyqt')
 
     # Try PyQt4
-    if qtapi == 'pyqt4' or qtapi == 'pyqt':
+    if qtapi == 'pyqt' or qtapi == 'pyqt4':
         try:
             PyQt4 = __import__('PyQt4')
             imp.find_module('QtCore', PyQt4.__path__)
@@ -44,10 +44,10 @@ def get_qt():
                     pass
             import PyQt4.QtCore
             import PyQt4.QtGui
-            os.environ['QT_API'] = 'pyqt4'
+            os.environ['QT_API'] = 'pyqt'
             return PyQt4, qtapi
     # Try PyQt5
-    if qtapi == 'pyqt5' or qtapi == 'pyqt':
+    if qtapi == 'pyqt5':
         try:
             PyQt5 = __import__('PyQt5')
             imp.find_module('QtCore', PyQt5.__path__)
