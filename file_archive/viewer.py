@@ -1,25 +1,10 @@
 from __future__ import division, unicode_literals
 
+import imp
+import os
 import platform
 import subprocess
 import sys
-
-try:
-    import sip
-
-    api2_classes = [
-            'QData', 'QDateTime', 'QString', 'QTextStream',
-            'QTime', 'QUrl', 'QVariant']
-    for cl in api2_classes:
-        try:
-            sip.setapi(cl, 2)
-        except ValueError:
-            pass
-
-    from PyQt4 import QtCore, QtGui
-except ImportError:
-    sys.stderr.write("PyQt4 is required by 'file_archive view'\n")
-    sys.exit(3)
 
 
 try:
@@ -33,6 +18,57 @@ from file_archive import hash_metadata
 from file_archive.compat import int_types
 from file_archive.parser import parse_expression
 from file_archive.trans import _, _n
+
+
+def get_qt():
+    qtapi = os.environ.get('QT_API', 'pyqt')
+
+    # Try PyQt4
+    if qtapi == 'pyqt4' or qtapi == 'pyqt':
+        try:
+            PyQt4 = __import__('PyQt4')
+            imp.find_module('QtCore', PyQt4.__path__)
+            imp.find_module('QtGui', PyQt4.__path__)
+            import sip
+        except ImportError:
+            pass
+        else:
+            api2_classes = [
+                    'QData', 'QDateTime', 'QString', 'QTextStream',
+                    'QTime', 'QUrl', 'QVariant']
+            for cl in api2_classes:
+                try:
+                    sip.setapi(cl, 2)
+                except ValueError:
+                    pass
+            import PyQt4.QtCore
+            import PyQt4.QtGui
+            os.environ['QT_API'] = 'pyqt4'
+            return PyQt4, qtapi
+    # Try PyQt5
+    if qtapi == 'pyqt5' or qtapi == 'pyqt':
+        try:
+            PyQt5 = __import__('PyQt5')
+            imp.find_module('QtCore', PyQt5.__path__)
+            imp.find_module('QtGui', PyQt5.__path__)
+        except ImportError:
+            pass
+        else:
+            import PyQt5.QtCore
+            import PyQt5.QtGui
+            os.environ['QT_API'] = 'pyqt5'
+            return PyQt5, qtapi
+    # Oh no
+    sys.stderr.write("'file_archive view' requires either PyQt4 or PyQt5\n")
+    if 'QT_API' in os.environ:
+        sys.stderr.write("QT_API is currently set to '%s', which is not "
+                         "supported\n" % qtapi)
+    sys.exit(3)
+
+
+PyQt, qtapi = get_qt()
+QtCore = PyQt.QtCore
+QtGui = PyQt.QtGui
 
 
 system = platform.system().lower()
