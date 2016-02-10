@@ -123,7 +123,8 @@ class TestStore(unittest.TestCase):
         self.path = tempfile.mkdtemp(prefix='test_file_archive_')
         file_archive.FileStore.create_store(self.path)
         self.store = file_archive.FileStore(self.path)
-        testfiles = os.path.join(os.path.dirname(__file__), 'testfiles')
+        testfiles = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                 'testfiles')
         self.t = lambda f: os.path.join(testfiles, f)
 
     def tearDown(self):
