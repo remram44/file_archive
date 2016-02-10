@@ -56,6 +56,7 @@ def get_qt():
         else:
             import PyQt5.QtCore
             import PyQt5.QtGui
+            import PyQt5.QtWidgets
             os.environ['QT_API'] = 'pyqt5'
             return PyQt5, qtapi
     # Oh no
@@ -69,6 +70,7 @@ def get_qt():
 PyQt, qtapi = get_qt()
 QtCore = PyQt.QtCore
 QtGui = PyQt.QtGui
+QtWidgets = PyQt.QtWidgets if qtapi == 'pyqt5' else PyQt.QtGui
 
 
 system = platform.system().lower()
@@ -93,10 +95,10 @@ class SearchError(Exception):
     """
 
 
-class FileItem(QtGui.QTreeWidgetItem):
+class FileItem(QtWidgets.QTreeWidgetItem):
     def __init__(self, entry):
         self.entry = entry
-        QtGui.QTreeWidgetItem.__init__(self, [entry.objectid])
+        QtWidgets.QTreeWidgetItem.__init__(self, [entry.objectid])
 
 
 class MetadataItem(FileItem):
@@ -106,48 +108,48 @@ class MetadataItem(FileItem):
             value = '%d' % value
         else:  # isinstance(v, string_types):
             t = 'str'
-        QtGui.QTreeWidgetItem.__init__(self, [key, value, t])
+        QtWidgets.QTreeWidgetItem.__init__(self, [key, value, t])
         self.entry = entry
 
 
-class StoreViewerWindow(QtGui.QMainWindow):
+class StoreViewerWindow(QtWidgets.QMainWindow):
     WINDOW_TITLE = _("file_archive viewer")
 
     MAX_RESULTS = 100
 
     def __init__(self, store):
-        QtGui.QMainWindow.__init__(self)
+        QtWidgets.QMainWindow.__init__(self)
         self.setWindowTitle(self.WINDOW_TITLE)
 
         self.store = store
 
-        searchbar = QtGui.QHBoxLayout()
+        searchbar = QtWidgets.QHBoxLayout()
 
         self._needs_refresh = False
 
         # Input line for the query
-        self._input = QtGui.QLineEdit()
+        self._input = QtWidgets.QLineEdit()
         self._input.setPlaceholderText(_("Enter query here"))
         self._input.returnPressed.connect(self._search)
         self._input.textEdited.connect(lambda t: self._set_needs_refresh())
         searchbar.addWidget(self._input)
 
         # Search button
-        self._searchbutton = QtGui.QPushButton(_("Search"))
+        self._searchbutton = QtWidgets.QPushButton(_("Search"))
         self._searchbutton.clicked.connect(self._search)
         searchbar.addWidget(self._searchbutton)
 
-        results = QtGui.QHBoxLayout()
+        results = QtWidgets.QHBoxLayout()
 
         # Result view, as a tree with metadata
-        self._result_tree = QtGui.QTreeWidget()
+        self._result_tree = QtWidgets.QTreeWidget()
         self._result_tree.setColumnCount(3)
         self._result_tree.setHeaderLabels([_("Key"), _("Value"), _("Type")])
         self._result_tree.itemSelectionChanged.connect(self._selection_changed)
         results.addWidget(self._result_tree)
 
         # Buttons, enabled/disabled when the selection changes
-        buttons = QtGui.QVBoxLayout()
+        buttons = QtWidgets.QVBoxLayout()
         self._buttons = self._create_buttons()
 
         for name, button in self._buttons:
@@ -155,11 +157,11 @@ class StoreViewerWindow(QtGui.QMainWindow):
         self._selection_changed()
         results.addLayout(buttons)
 
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         layout.addLayout(searchbar)
         layout.addLayout(results)
 
-        widget = QtGui.QWidget()
+        widget = QtWidgets.QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)
 
@@ -171,7 +173,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
         # Open button; uses the system to choose the program to open with
         # (on Windows, might ask you what to use every time because of filename
         # scheme)
-        open_button = QtGui.QPushButton(_("Open"))
+        open_button = QtWidgets.QPushButton(_("Open"))
         if openfile is not None:
             open_button.clicked.connect(self._openfile)
             buttons.append(('single', open_button))
@@ -179,17 +181,17 @@ class StoreViewerWindow(QtGui.QMainWindow):
             open_button.setEnabled(False)
 
         # Copy hash button
-        copy_button = QtGui.QPushButton(_("Copy ID"))
+        copy_button = QtWidgets.QPushButton(_("Copy ID"))
         copy_button.clicked.connect(self._copy_objectid)
         buttons.append(('single', copy_button))
 
         # Edit metadata button
-        edit_button = QtGui.QPushButton(_("Edit metadata..."))
+        edit_button = QtWidgets.QPushButton(_("Edit metadata..."))
         edit_button.clicked.connect(self._edit_metadata)
         buttons.append(('single', edit_button))
 
         # Delete button, removes what's selected (with confirmation)
-        remove_button = QtGui.QPushButton(_("Delete"))
+        remove_button = QtWidgets.QPushButton(_("Delete"))
         remove_button.clicked.connect(self._delete)
         buttons.append(('multi', remove_button))
 
@@ -233,7 +235,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
         self._result_tree.clear()
 
         if error is not None:
-            w = QtGui.QTreeWidgetItem([error])
+            w = QtWidgets.QTreeWidgetItem([error])
             w.setForeground(0, QtGui.QColor(255, 0, 0))
             self._result_tree.addTopLevelItem(w)
             self._result_tree.setFirstItemColumnSpanned(w, True)
@@ -249,7 +251,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
                     file_item.addChild(MetadataItem(entry, k, v))
 
                 if i + 1 == self.MAX_RESULTS:
-                    last_item = QtGui.QTreeWidgetItem(
+                    last_item = QtWidgets.QTreeWidgetItem(
                             [_("... stripped after {nb} results...",
                                nb=self.MAX_RESULTS)])
                     f = last_item.font(0)
@@ -261,7 +263,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
                                                                 True)
                     break
             if self._result_tree.topLevelItemCount() == 0:
-                w = QtGui.QTreeWidgetItem([_("No matches")])
+                w = QtWidgets.QTreeWidgetItem([_("No matches")])
                 self._result_tree.addTopLevelItem(w)
                 self._result_tree.setFirstItemColumnSpanned(w, True)
             self._result_tree.expandAll()
@@ -290,7 +292,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
             return
         objectid = items[0].entry.objectid
 
-        clipboard = QtGui.QApplication.clipboard()
+        clipboard = QtWidgets.QApplication.clipboard()
         clipboard.setText(objectid)
 
     def _edit_metadata(self):
@@ -318,7 +320,7 @@ class StoreViewerWindow(QtGui.QMainWindow):
         items = self._result_tree.selectedItems()
         if not items:
             return
-        confirm = QtGui.QMessageBox.question(
+        confirm = QtWidgets.QMessageBox.question(
                 self,
                 _("Are you sure?"),
                 _n("You are about to delete {num} entry from the store. "
@@ -327,9 +329,9 @@ class StoreViewerWindow(QtGui.QMainWindow):
                    "Please confirm.",
                    len(items),
                    num=len(items)),
-                QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel,
-                QtGui.QMessageBox.Cancel)
-        if confirm == QtGui.QMessageBox.Ok:
+                QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel,
+                QtWidgets.QMessageBox.Cancel)
+        if confirm == QtWidgets.QMessageBox.Ok:
             ids = set([i.entry.objectid for i in items])
             i = 0
             while i < self._result_tree.topLevelItemCount():
@@ -341,52 +343,52 @@ class StoreViewerWindow(QtGui.QMainWindow):
                     i += 1
 
 
-class MetadataEditor(QtGui.QDialog):
+class MetadataEditor(QtWidgets.QDialog):
     def __init__(self, entry, parent):
-        QtGui.QDialog.__init__(self, parent, QtCore.Qt.Dialog)
+        QtWidgets.QDialog.__init__(self, parent, QtCore.Qt.Dialog)
         self.setWindowModality(QtCore.Qt.ApplicationModal)
 
         self._entry = entry
         self._parent = parent
 
-        label = QtGui.QLabel(_("Editing entry %s") % entry.objectid)
+        label = QtWidgets.QLabel(_("Editing entry %s") % entry.objectid)
 
-        self._table = QtGui.QTableWidget()
+        self._table = QtWidgets.QTableWidget()
         self._table.setColumnCount(3)
         self._table.setHorizontalHeaderLabels(['key', 'type', 'value'])
         self._table.setSortingEnabled(True)
         self._table.sortByColumn(0, QtCore.Qt.AscendingOrder)
         self._table.resizeColumnsToContents()
-        scrollarea = QtGui.QScrollArea()
+        scrollarea = QtWidgets.QScrollArea()
         scrollarea.setWidgetResizable(True)
         scrollarea.setWidget(self._table)
 
-        plus = QtGui.QPushButton(_("+"))
+        plus = QtWidgets.QPushButton(_("+"))
         plus.clicked.connect(self._add_row)
-        minus = QtGui.QPushButton(_("-"))
+        minus = QtWidgets.QPushButton(_("-"))
         minus.clicked.connect(self._remove_row)
-        controls = QtGui.QVBoxLayout()
+        controls = QtWidgets.QVBoxLayout()
         controls.addWidget(plus)
         controls.addWidget(minus)
 
-        table_row = QtGui.QHBoxLayout()
+        table_row = QtWidgets.QHBoxLayout()
         table_row.addWidget(scrollarea)
         table_row.addLayout(controls)
 
-        self._remove_original = QtGui.QCheckBox(_("Remove original entry"))
+        self._remove_original = QtWidgets.QCheckBox(_("Remove original entry"))
         self._remove_original.setChecked(False)
         self._remove_original.stateChanged.connect(self._mode_changed)
 
-        self._ok_button = QtGui.QPushButton(_("Create new entry"))
+        self._ok_button = QtWidgets.QPushButton(_("Create new entry"))
         self._ok_button.clicked.connect(self._ok_clicked)
-        cancel_button = QtGui.QPushButton(_("Cancel"))
+        cancel_button = QtWidgets.QPushButton(_("Cancel"))
         cancel_button.clicked.connect(lambda: self.setVisible(False))
-        buttons = QtGui.QHBoxLayout()
+        buttons = QtWidgets.QHBoxLayout()
         buttons.addStretch()
         buttons.addWidget(self._ok_button)
         buttons.addWidget(cancel_button)
 
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         layout.addWidget(label)
         layout.addLayout(table_row)
         layout.addWidget(self._remove_original)
@@ -406,12 +408,12 @@ class MetadataEditor(QtGui.QDialog):
             self._table.setSortingEnabled(False)
         self._table.insertRow(row)
 
-        typeedit = QtGui.QComboBox()
+        typeedit = QtWidgets.QComboBox()
         typeedit.addItems(['int', 'str'])
         self._table.setCellWidget(row, 1, typeedit)
 
         if key is not None:
-            keyitem = QtGui.QTableWidgetItem(key)
+            keyitem = QtWidgets.QTableWidgetItem(key)
             self._table.setItem(row, 0, keyitem)
         if value is not None:
             if isinstance(value, int_types):
@@ -419,7 +421,7 @@ class MetadataEditor(QtGui.QDialog):
                 value = '%s' % value
             else:
                 typeedit.setCurrentIndex(1)
-            valueitem = QtGui.QTableWidgetItem(value)
+            valueitem = QtWidgets.QTableWidgetItem(value)
             self._table.setItem(row, 2, valueitem)
 
         if not sorting_disabled:
@@ -466,7 +468,7 @@ class MetadataEditor(QtGui.QDialog):
             metadata[key] = {'type': type_, 'value': value}
 
         if error is not None:
-            QtGui.QMessageBox.critical(self, _("Invalid values"), error)
+            QtWidgets.QMessageBox.critical(self, _("Invalid values"), error)
             return
 
         metadata['hash'] = self._entry.metadata['hash']
@@ -477,7 +479,7 @@ class MetadataEditor(QtGui.QDialog):
 
 
 def run_viewer(store):
-    application = QtGui.QApplication([])
+    application = QtWidgets.QApplication([])
 
     window = StoreViewerWindow(store)
     window.show()
