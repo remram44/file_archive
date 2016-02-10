@@ -42,20 +42,21 @@ def normalize_metadata(metadata):
                                  "'value': <value>}")
         else:
             raise TypeError(
-                    "Metadata values should be int, string, or dictionaries "
-                    "with the format:\n"
-                    "{'type': 'int/str/...', 'value': <value>}")
+                "Metadata values should be int, string, or dictionaries "
+                "with the format:\n"
+                "{'type': 'int/str/...', 'value': <value>}")
         if isinstance(mvalue, bytes):
             mvalue = mvalue.decode('ascii')
         result[mkey] = {'type': t, 'value': mvalue}
     return result
 
 
+_TYPES = [('TEXT', 'str'), ('INTEGER', 'int')]
+
+
 class MetadataStore(object):
     """The database holding metadata associated to SHA1 hashs.
     """
-    _TYPES = [('TEXT', 'str'), ('INTEGER', 'int')]
-
     def __init__(self, database):
         try:
             self.conn = sqlite3.connect(database)
@@ -69,7 +70,7 @@ class MetadataStore(object):
                 raise InvalidStore("Database doesn't have required structure")
         except sqlite3.Error as e:
             raise InvalidStore("Cannot access database: %s: %s" % (
-                    e.__class__.__name__, e.message))
+                e.__class__.__name__, e.message))
 
     @staticmethod
     def create_db(database):
@@ -81,10 +82,11 @@ class MetadataStore(object):
                         mkey VARCHAR(255) NULL
                     '''
             indexes = [
-                    'CREATE INDEX id_idx ON metadata(objectid)',
-                    'CREATE INDEX mkey_idx ON metadata(mkey)']
+                'CREATE INDEX id_idx ON metadata(objectid)',
+                'CREATE INDEX mkey_idx ON metadata(mkey)',
+            ]
 
-            for datatype, name in MetadataStore._TYPES:
+            for datatype, name in _TYPES:
                 query += '''
                         , mvalue_{name} {type} NULL
                         '''.format(name=name, type=datatype)
@@ -102,7 +104,7 @@ class MetadataStore(object):
             conn.close()
         except sqlite3.Error as e:  # pragma: no cover
             raise CreationError("Could not create database: %s: %s" % (
-                    e.__class__.__name__, e.message))
+                e.__class__.__name__, e.message))
 
     def close(self):
         self.conn.commit()
@@ -118,23 +120,23 @@ class MetadataStore(object):
         cur = self.conn.cursor()
         try:
             cur.execute(
-                    '''
-                    SELECT objectid FROM metadata
-                    WHERE objectid = :objectid
-                    LIMIT 1
-                    ''',
-                    {'objectid': objectid})
+                '''
+                SELECT objectid FROM metadata
+                WHERE objectid = :objectid
+                LIMIT 1
+                ''',
+                {'objectid': objectid})
             if cur.fetchone() is not None:
                 return False
             for mkey, mvalue in metadata.items():
                 t = mvalue['type']
                 v = mvalue['value']
                 cur.execute(
-                        '''
-                        INSERT INTO metadata(objectid, mkey, mvalue_{name})
-                        VALUES(:objectid, :key, :value)
-                        '''.format(name=t),
-                        {'objectid': objectid, 'key': mkey, 'value': v})
+                    '''
+                    INSERT INTO metadata(objectid, mkey, mvalue_{name})
+                    VALUES(:objectid, :key, :value)
+                    '''.format(name=t),
+                    {'objectid': objectid, 'key': mkey, 'value': v})
             self.conn.commit()
             return True
         except:
@@ -149,10 +151,10 @@ class MetadataStore(object):
         cur = self.conn.cursor()
         try:
             cur.execute(
-                    '''
-                    DELETE FROM metadata WHERE objectid = :objectid
-                    ''',
-                    {'objectid': objectid})
+                '''
+                DELETE FROM metadata WHERE objectid = :objectid
+                ''',
+                {'objectid': objectid})
             if not cur.rowcount:
                 raise KeyError(objectid)
             self.conn.commit()
@@ -165,14 +167,14 @@ class MetadataStore(object):
         """
         cur = self.conn.cursor()
         rows = cur.execute(
-                '''
-                SELECT * FROM metadata
-                WHERE objectid = :objectid
-                ''',
-                {'objectid': objectid})
+            '''
+            SELECT * FROM metadata
+            WHERE objectid = :objectid
+            ''',
+            {'objectid': objectid})
         result = ResultBuilder(rows)
         try:
-            objectid_, metadata = next(result)
+            _objectid, metadata = next(result)
             return metadata
         except StopIteration:
             raise KeyError("No entry with this objectid")
@@ -184,11 +186,11 @@ class MetadataStore(object):
         """
         cur = self.conn.cursor()
         rows = cur.execute(
-                '''
-                SELECT * FROM metadata
-                WHERE mkey = 'hash' AND mvalue_str = :filehash
-                ''',
-                {'filehash': filehash})
+            '''
+            SELECT * FROM metadata
+            WHERE mkey = 'hash' AND mvalue_str = :filehash
+            ''',
+            {'filehash': filehash})
         try:
             next(rows)
             return True
@@ -258,13 +260,13 @@ class MetadataStore(object):
 
         # And we put that in the query
         rows = cur.execute(
-                '''
-                SELECT *
-                FROM metadata
-                WHERE objectid IN ({ids})
-                ORDER BY objectid
-                '''.format(ids=hquery),
-                params)
+            '''
+            SELECT *
+            FROM metadata
+            WHERE objectid IN ({ids})
+            ORDER BY objectid
+            '''.format(ids=hquery),
+            params)
 
         return ResultBuilder(rows)
 
@@ -292,9 +294,9 @@ class MetadataStore(object):
                     raise TypeError("Unknown data type %r" % t)
             else:
                 raise TypeError(
-                        "Query conditions should be dictionaries with the "
-                        "format:\n"
-                        "{'type': 'int/str/...', <condition>}")
+                    "Query conditions should be dictionaries with the "
+                    "format:\n"
+                    "{'type': 'int/str/...', <condition>}")
 
             conds = []
             params = {}
@@ -351,7 +353,7 @@ class ResultBuilder(object):
         objectid = r['objectid']
 
         def get_value(r):
-            for datatype, name in MetadataStore._TYPES:
+            for _datatype, name in _TYPES:
                 v = r['mvalue_%s' % name]
                 if v is not None:
                     return v

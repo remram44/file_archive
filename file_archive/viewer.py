@@ -34,8 +34,9 @@ def get_qt():
             pass
         else:
             api2_classes = [
-                    'QData', 'QDateTime', 'QString', 'QTextStream',
-                    'QTime', 'QUrl', 'QVariant']
+                'QData', 'QDateTime', 'QString', 'QTextStream',
+                'QTime', 'QUrl', 'QVariant'
+            ]
             for cl in api2_classes:
                 try:
                     sip.setapi(cl, 2)
@@ -152,7 +153,7 @@ class StoreViewerWindow(QtWidgets.QMainWindow):
         buttons = QtWidgets.QVBoxLayout()
         self._buttons = self._create_buttons()
 
-        for name, button in self._buttons:
+        for _name, button in self._buttons:
             buttons.addWidget(button)
         self._selection_changed()
         results.addLayout(buttons)
@@ -252,8 +253,8 @@ class StoreViewerWindow(QtWidgets.QMainWindow):
 
                 if i + 1 == self.MAX_RESULTS:
                     last_item = QtWidgets.QTreeWidgetItem(
-                            [_("... stripped after {nb} results...",
-                               nb=self.MAX_RESULTS)])
+                        [_("... stripped after {nb} results...",
+                           nb=self.MAX_RESULTS)])
                     f = last_item.font(0)
                     f.setBold(True)
                     f.setItalic(True)
@@ -274,9 +275,8 @@ class StoreViewerWindow(QtWidgets.QMainWindow):
         items = self._result_tree.selectedItems()
         for t, button in self._buttons:
             if t == 'single':
-                button.setEnabled(
-                        len(items) == 1 and
-                        isinstance(items[0], FileItem))
+                button.setEnabled(len(items) == 1 and
+                                  isinstance(items[0], FileItem))
             elif t == 'multi':
                 button.setEnabled(bool(items) and
                                   all(isinstance(i, FileItem) for i in items))
@@ -321,16 +321,16 @@ class StoreViewerWindow(QtWidgets.QMainWindow):
         if not items:
             return
         confirm = QtWidgets.QMessageBox.question(
-                self,
-                _("Are you sure?"),
-                _n("You are about to delete {num} entry from the store. "
-                   "Please confirm.",
-                   "You are about to delete {num} entries from the store. "
-                   "Please confirm.",
-                   len(items),
-                   num=len(items)),
-                QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel,
-                QtWidgets.QMessageBox.Cancel)
+            self,
+            _("Are you sure?"),
+            _n("You are about to delete {num} entry from the store. "
+               "Please confirm.",
+               "You are about to delete {num} entries from the store. "
+               "Please confirm.",
+               len(items),
+               num=len(items)),
+            QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel,
+            QtWidgets.QMessageBox.Cancel)
         if confirm == QtWidgets.QMessageBox.Ok:
             ids = set([i.entry.objectid for i in items])
             i = 0

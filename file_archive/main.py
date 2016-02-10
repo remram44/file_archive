@@ -283,10 +283,10 @@ def cmd_remove(store, args):
             nb = sum(1 for e in entries)
             if nb:
                 sys.stderr.write(_(
-                        "Error: not removing files unconditionally unless -f "
-                        "is given\n"
-                        "(command would have removed {nb} files)\n",
-                        nb=nb))
+                    "Error: not removing files unconditionally unless -f "
+                    "is given\n"
+                    "(command would have removed {nb} files)\n",
+                    nb=nb))
                 sys.exit(1)
         for e in entries:
             store.remove(e)
@@ -312,30 +312,31 @@ def cmd_view(store, args):
 
 
 commands = {
-        'add': cmd_add,
-        'write': cmd_write,
-        'query': cmd_query,
-        'print': cmd_print,
-        'remove': cmd_remove,
-        'verify': cmd_verify,
-        'view': cmd_view}
+    'add': cmd_add,
+    'write': cmd_write,
+    'query': cmd_query,
+    'print': cmd_print,
+    'remove': cmd_remove,
+    'verify': cmd_verify,
+    'view': cmd_view,
+}
 
 
 def main(args):
     warnings.filterwarnings('always', category=UsageWarning)
 
     usage = _(
-            "usage: {bin} <store> create\n"
-            "   or: {bin} <store> add <filename> [key1=value1] [...]\n"
-            "   or: {bin} <store> write [key1=value1] [...]\n"
-            "   or: {bin} <store> query [-d] [-t] [key1=value1] [...]\n"
-            "   or: {bin} <store> print [-m] [-t] <filehash> [...]\n"
-            "   or: {bin} <store> print [-m] [-t] [key1=value1] [...]\n"
-            "   or: {bin} <store> remove [-f] <filehash>\n"
-            "   or: {bin} <store> remove [-f] <key1=value1> [...]\n"
-            "   or: {bin} <store> verify\n"
-            "   or: {bin} <store> view\n",
-            bin='file_archive')
+        "usage: {bin} <store> create\n"
+        "   or: {bin} <store> add <filename> [key1=value1] [...]\n"
+        "   or: {bin} <store> write [key1=value1] [...]\n"
+        "   or: {bin} <store> query [-d] [-t] [key1=value1] [...]\n"
+        "   or: {bin} <store> print [-m] [-t] <filehash> [...]\n"
+        "   or: {bin} <store> print [-m] [-t] [key1=value1] [...]\n"
+        "   or: {bin} <store> remove [-f] <filehash>\n"
+        "   or: {bin} <store> remove [-f] <key1=value1> [...]\n"
+        "   or: {bin} <store> verify\n"
+        "   or: {bin} <store> view\n",
+        bin='file_archive')
 
     if len(args) < 2:
         sys.stderr.write(usage)

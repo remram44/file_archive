@@ -30,9 +30,11 @@ def run_program(*args, **kwargs):
     # unittest
     finally:
         sys.stdout, sys.stderr = old_stdout, old_stderr
+
         def read(f):
             f.seek(0, os.SEEK_SET)
             return (l.rstrip('\r\n') for l in f)
+
         if 'out' in kwargs:
             kwargs['out'].extend(read(out))
         if 'err' in kwargs:
@@ -83,20 +85,20 @@ class TestStore(unittest.TestCase):
     def test_putfile(self):
         out = []
         self.assertEqual(
-                run_program(self.path, 'add', self.t('file1.bin'), 'a=b',
-                            out=out),
-                0)
+            run_program(self.path, 'add', self.t('file1.bin'), 'a=b',
+                        out=out),
+            0)
         h1 = 'fce92fa2647153f7d696a3c1884d732290273102'
         o1 = '8ce67dc4c67401ff8122ecebc98ecee506211f88'
         self.assertEqual(out, [o1])
         self.assertTrue(os.path.isfile(os.path.join(
-                self.path,
-                'objects',
-                'fc',
-                'e92fa2647153f7d696a3c1884d732290273102')))
+            self.path,
+            'objects',
+            'fc',
+            'e92fa2647153f7d696a3c1884d732290273102')))
         self.assertEqual(
-                self.store.get(o1).metadata,
-                {'hash': h1, 'a': 'b'})
+            self.store.get(o1).metadata,
+            {'hash': h1, 'a': 'b'})
 
     def test_wrongpath(self):
         self.assertEqual(run_program(self.path, 'add', 'nonexistentpath-fa'),
@@ -125,9 +127,9 @@ class TestStore(unittest.TestCase):
 
         out = r('query', '-d')
         self.assertEqual(eval('\n'.join(out)), {
-                o1: {'hash': h1, 'tag': 'test', 'test': 1},
-                o2: {'hash': h2, 'tag': 'other', 'test': 2},
-            })
+            o1: {'hash': h1, 'tag': 'test', 'test': 1},
+            o2: {'hash': h2, 'tag': 'other', 'test': 2},
+        })
         self.assertEqual(out,
                          ['{',
                           '    "%s": {' % o1,
@@ -203,12 +205,12 @@ class TestParseQuery(unittest.TestCase):
 class TestParseNewData(unittest.TestCase):
     def test_data(self):
         self.assertEqual(file_archive.main.parse_new_metadata(
-                ['type=a file', 'month=str:october',
-                 'time=str:11:40', 'year=int:2013']),
-                {'type': {'type': 'str', 'value': 'a file'},
-                 'month': {'type': 'str', 'value': 'october'},
-                 'time': {'type': 'str', 'value': '11:40'},
-                 'year': {'type': 'int', 'value': 2013}})
+            ['type=a file', 'month=str:october',
+             'time=str:11:40', 'year=int:2013']),
+            {'type': {'type': 'str', 'value': 'a file'},
+             'month': {'type': 'str', 'value': 'october'},
+             'time': {'type': 'str', 'value': '11:40'},
+             'year': {'type': 'int', 'value': 2013}})
 
     def test_errors(self):
         def error1(*args):

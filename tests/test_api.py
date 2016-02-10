@@ -137,8 +137,8 @@ class TestStore(unittest.TestCase):
     def test_putfile(self):
         with self.assertRaises(ValueError):
             self.store.add_file(
-                    self.t('file1.bin'),
-                    {'a': {'type': 'str', 'value': 'b', 'other': 'dont'}})
+                self.t('file1.bin'),
+                {'a': {'type': 'str', 'value': 'b', 'other': 'dont'}})
         with self.assertRaises(TypeError):
             self.store.add_file(self.t('file1.bin'), {'a': object()})
 
@@ -148,13 +148,13 @@ class TestStore(unittest.TestCase):
         o1 = '8ce67dc4c67401ff8122ecebc98ecee506211f88'
         self.assertEqual(entry1['hash'], h1)
         self.assertTrue(os.path.isfile(os.path.join(
-                self.path,
-                'objects',
-                'fc',
-                'e92fa2647153f7d696a3c1884d732290273102')))
+            self.path,
+            'objects',
+            'fc',
+            'e92fa2647153f7d696a3c1884d732290273102')))
         self.assertEqual(
-                self.store.get(o1).metadata,
-                {'hash': h1, 'a': 'b'})
+            self.store.get(o1).metadata,
+            {'hash': h1, 'a': 'b'})
 
     def test_put_file_twice(self):
         self.assertIsNotNone(self.store.add_file(self.t('file1.bin'), {}))
@@ -186,6 +186,7 @@ class TestStore(unittest.TestCase):
             else:
                 self.assertEqual(entry.objectid, expected)
                 self.assertEqual(entry.metadata, meta[expected])
+
         def assert_many(cond, expected):
             entries = self.store.query(cond)
             objectids = set(entry.objectid for entry in entries)
@@ -194,17 +195,17 @@ class TestStore(unittest.TestCase):
                 self.assertEqual(entry.metadata, meta[entry.objectid])
 
         files = [
-                 ('file1.bin', '6de19c2c8a867f2d9a2f663e036a6a70be8da205',
-                  {}),
-                 ('file2.bin', '30df4f59cb6403af6b153306edd7f0d2d48afbb2',
-                  {'a': 'aa', 'c': 12, 'd': 'common'}),
-                 ('dir3', 'be511e1f41f5342a01bbc25bf3e5efeaf4b4502f',
-                  {'a': 'bb', 'c': 41}),
-                 ('dir4', 'ba1f71ab8c587ce78f0209c11e1ab742ba16b7ef',
-                  {'c': '12', 'd': 'common'}),
-                 ('file5.bin', '9b54725b357d9c7dd58ca83708ca4e73c7e44fd3',
-                  {'e': 'aa', 'f': 41}),
-            ]
+            ('file1.bin', '6de19c2c8a867f2d9a2f663e036a6a70be8da205',
+             {}),
+            ('file2.bin', '30df4f59cb6403af6b153306edd7f0d2d48afbb2',
+             {'a': 'aa', 'c': 12, 'd': 'common'}),
+            ('dir3', 'be511e1f41f5342a01bbc25bf3e5efeaf4b4502f',
+             {'a': 'bb', 'c': 41}),
+            ('dir4', 'ba1f71ab8c587ce78f0209c11e1ab742ba16b7ef',
+             {'c': '12', 'd': 'common'}),
+            ('file5.bin', '9b54725b357d9c7dd58ca83708ca4e73c7e44fd3',
+             {'e': 'aa', 'f': 41}),
+        ]
 
         ids = []
         meta = {}
@@ -277,11 +278,11 @@ class TestStore(unittest.TestCase):
         entry = self.store.query_one({'findme': 'here'})
         self.assertEqual(entry.metadata, {'hash': h, 'findme': 'here'})
         self.assertEqual(
-                os.path.realpath(entry.filename),
-                os.path.realpath(os.path.join(
-                        self.path,
-                        'objects',
-                        h[:2], h[2:])))
+            os.path.realpath(entry.filename),
+            os.path.realpath(os.path.join(
+                self.path,
+                'objects',
+                h[:2], h[2:])))
         c = (b'this is some\n'
              b'random content\n'
              b'note LF line endings\n')
@@ -331,7 +332,7 @@ class TestStore(unittest.TestCase):
             self.assertEqual(len(warns), 1)
             self.assertIs(type(warns[0].message), file_archive.UsageWarning)
             self.assertTrue(warns[0].message.args[0].endswith(
-                    "is a symbolic link, using target file instead"))
+                "is a symbolic link, using target file instead"))
         with temp_dir() as d:
             os.symlink(self.t('file1.bin'), os.path.join(d, 'link'))
             with warnings.catch_warnings(record=True) as warns:
@@ -348,8 +349,8 @@ class TestStore(unittest.TestCase):
             os.symlink(d, os.path.join(d, 'link'))
             with temp_warning_filter():
                 warnings.filterwarnings(
-                        'ignore',
-                        '.*is a symbolic link, recursing on target directory$',
-                        file_archive.UsageWarning)
+                    'ignore',
+                    '.*is a symbolic link, recursing on target directory$',
+                    file_archive.UsageWarning)
                 with self.assertRaises(ValueError):
                     self.store.add_directory(d, {'some': 'data'})
