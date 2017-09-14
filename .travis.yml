@@ -9,13 +9,20 @@ python:
   - "3.6"
 env:
   - TEST_MODE=tests
-install:
-  - pip install tdparser
-  - "[ 2.6 != $TRAVIS_PYTHON_VERSION ] || pip install unittest2"
-  - "[ coverage != $TEST_MODE ] || pip install codecov"
-  - "[ flake8 != $TEST_MODE ] || pip install flake8"
-script:
-    - "if [ coverage = $TEST_MODE ]; then coverage run --source=file_archive --branch tests/__main__.py && codecov; elif [ flake8 = $TEST_MODE ]; then flake8 file_archive tests; else python tests; fi"
+install: |
+  pip install tdparser && \
+  [ 2.6 != $TRAVIS_PYTHON_VERSION ] || pip install unittest2 && \
+  [ coverage != $TEST_MODE ] || pip install codecov && \
+  [ flake8 != $TEST_MODE ] || pip install flake8
+script: |
+  if [ coverage = $TEST_MODE ]; then
+    coverage run --source=file_archive --branch tests/__main__.py && \
+    codecov
+  elif [ flake8 = $TEST_MODE ]; then
+    flake8 file_archive tests
+  else
+    python tests
+  fi
 matrix:
   include:
     - python: "2.7"
