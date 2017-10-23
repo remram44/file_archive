@@ -48,7 +48,7 @@ def copy_file(fileobj, destination):
         try:
             for chunk in BufferedReader(fileobj):
                 destobj.write(chunk)
-        except:  # pragma: no cover
+        except BaseException:  # pragma: no cover
             os.remove(destination)
             raise
 
@@ -142,7 +142,7 @@ def copy_directory(sourcepath, destination, root=None):
             else:
                 with open(pf, 'rb') as fd:
                     copy_file(fd, df)
-    except:  # pragma: no cover
+    except BaseException:  # pragma: no cover
         shutil.rmtree(destination)
         raise
 
@@ -280,7 +280,7 @@ class FileStore(object):
             copy_file(newfile, storedfile)
         try:
             self.metadata.add(objectid, metadata)
-        except:  # pragma: no cover
+        except BaseException:  # pragma: no cover
             os.remove(storedfile)
             raise
         return Entry(self, objectid, metadata)
@@ -305,7 +305,7 @@ class FileStore(object):
             copy_directory(newdir, storeddir)
         try:
             self.metadata.add(objectid, metadata)
-        except:  # pragma: no cover
+        except BaseException:  # pragma: no cover
             shutil.rmtree(storeddir)
             raise
         return Entry(self, objectid, metadata)

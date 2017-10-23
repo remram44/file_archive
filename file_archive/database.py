@@ -139,7 +139,7 @@ class MetadataStore(object):
                     {'objectid': objectid, 'key': mkey, 'value': v})
             self.conn.commit()
             return True
-        except:
+        except BaseException:
             self.conn.rollback()
             raise
 
@@ -158,7 +158,7 @@ class MetadataStore(object):
             if not cur.rowcount:
                 raise KeyError(objectid)
             self.conn.commit()
-        except:
+        except BaseException:
             self.conn.rollback()
             raise
 
