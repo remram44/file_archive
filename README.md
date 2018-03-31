@@ -1,9 +1,8 @@
-file_archive: A file store with searchable metadata
+# file_archive: A file store with searchable metadata
 
 [![Build Status](https://travis-ci.org/remram44/file_archive.png?branch=master)](https://travis-ci.org/remram44/file_archive)
-[![Coverage Status](https://coveralls.io/repos/remram44/file_archive/badge.png?branch=master)](https://coveralls.io/r/remram44/file_archive?branch=master)
-
-# Introduction
+[![Coverage Status](https://img.shields.io/coveralls/github/remram44/file_archive.svg)](https://coveralls.io/r/remram44/file_archive?branch=master)
+[![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/remram44)
 
 This is a file archiving system. You submit it files with a set of metadata, as
 key-value pairs, and it allows you to later retrieve the files that match
