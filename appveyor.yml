@@ -1,4 +1,4 @@
-# https://ci.appveyor.com/project/remram44/rpaths
+# https://ci.appveyor.com/project/remram44/file-archive
 build: false
 shallow_clone: true
 environment:
@@ -7,7 +7,7 @@ environment:
     - PYTHON: "C:/Python34"
 install:
   - set PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
-  - pip install -U setuptools pip
+  - pip install setuptools
   - pip install tdparser
   - python setup.py install
 test_script:
