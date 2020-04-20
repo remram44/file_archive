@@ -14,7 +14,7 @@ if not PY3:
         """Version of sqlite3.Row that doesn't choke on unicode column names.
         """
         def __getitem__(self, idx):  # pragma: no cover
-            if isinstance(idx, unicode):
+            if isinstance(idx, unicode):  # noqa: F821
                 idx = idx.encode('ascii')
             return sqlite3.Row.__getitem__(self, idx)
 else:
