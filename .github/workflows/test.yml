@@ -12,7 +12,7 @@ jobs:
         mode: [tests]
         python:
         - "2.7"
-        - "3.3"
+        - "3.5"
         - "3.8"
         include:
         - os: macos-latest
@@ -54,7 +54,7 @@ jobs:
         os: [windows-latest]
         python:
         - "2.7"
-        - "3.3"
+        - "3.5"
         - "3.8"
     runs-on: ${{ matrix.os }}
     steps:
