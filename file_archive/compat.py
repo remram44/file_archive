@@ -24,9 +24,9 @@ PY3 = sys.version_info >= (3, 0)
 
 
 if not PY3:
-    string_types = basestring
-    int_types = int, long
-    unicode_type = unicode
+    string_types = basestring  # noqa: F821
+    int_types = int, long  # noqa: F821
+    unicode_type = unicode  # noqa: F821
 
     from StringIO import StringIO
     BytesIO = StringIO

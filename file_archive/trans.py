@@ -14,7 +14,7 @@ __all__ = ['setup_translation', '_', '_n']
 
 
 if str == bytes:
-    string_types = basestring
+    string_types = basestring  # noqa: F821
 else:
     string_types = str
 
