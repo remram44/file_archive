@@ -23,7 +23,7 @@ jobs:
           python: "2.7"
         - os: ubuntu-latest
           mode: flake8
-          python: "2.7"
+          python: "3.8"
     runs-on: ${{ matrix.os }}
     env:
       TEST_MODE: ${{ matrix.mode }}
