@@ -1,6 +1,6 @@
 # file_archive: A file store with searchable metadata
 
-[![Build Status](https://travis-ci.org/remram44/file_archive.png?branch=master)](https://travis-ci.org/remram44/file_archive)
+[![Build Status](https://github.com/remram44/file_archive/workflows/Test/badge.svg)](https://github.com/remram44/file_archive/actions)
 [![Coverage Status](https://img.shields.io/coveralls/github/remram44/file_archive.svg)](https://coveralls.io/r/remram44/file_archive?branch=master)
 [![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/remram44)
 
